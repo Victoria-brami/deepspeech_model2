@@ -96,8 +96,7 @@ class LightningNet(pl.LightningModule):
         inputs, targets, input_percentages, target_sizes = batch
         input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
         out, output_sizes = self(inputs, input_sizes)
-        print('VALIDATION OUTPUTS TYPES', type(out), type(labels))
-        val_lwlrap = self.lwlrap(out, labels)
+        val_lwlrap = self.lwlrap(out, targets)
 
     def configure_optimizers(self):
         # Learning rate suggestion
