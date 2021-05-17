@@ -264,24 +264,17 @@ class DeepSpeech(pl.LightningModule):
         inputs = inputs.to(self.device)
         with autocast(enabled=self.precision == 16):
             out, output_sizes = self(inputs, input_sizes)
-        # decoded_output, _ = self.evaluation_decoder.decode(out, output_sizes)
-        # self.wer(
-        #     preds=out,
-        #     preds_sizes=output_sizes,
-        #     targets=targets,
-        #     target_sizes=target_sizes
-        # print('Validation LwLRAP:', self.lwlrap(out, targets))
-        # self.cer(
-        #     preds=out,
-        #     preds_sizes=output_sizes,
-        #     targets=targets,
-        #     target_sizes=target_sizes
-        # )
         loss = self.lwlrap(preds=out, labels=targets)
         # print('Validation LwLrap: ', loss)
         self.log('val_loss', loss,  prog_bar=True, on_epoch=True)   
         
-        
+    def training_epoch_end(self, outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        self.log('Train/Loss_per_epoch', avg_loss, self.current_epoch)
+
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        self.log('Validation/Loss_per_epoch', avg_loss, self.current_epoch)
 
     def configure_optimizers(self):
         if OmegaConf.get_type(self.optim_cfg) is SGDConfig:
