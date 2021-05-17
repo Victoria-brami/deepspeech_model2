@@ -284,14 +284,14 @@ class LWLRAP(Metric):
 
     def compute(self):
         res = self.scores_sum.float() / self.labels_sum.float()
-        return 1 - res
+        return res
 
     def __call__(self, preds, labels):
         scores, labels = self._batch_compute(preds, labels)
         self.scores_sum += scores
         self.labels_sum += labels
         res = scores.float() / labels.float()
-        return 1 - res
+        return res
 
     # label-level average
     # Assume float preds [BxC], labels [BxC] of 0 or 1

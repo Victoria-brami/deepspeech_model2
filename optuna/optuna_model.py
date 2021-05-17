@@ -1,24 +1,11 @@
-import math
-from typing import List, Union
-import numpy as np
-import os
-# os.system('conda install torch==1.8.1')
-
-import pytorch_lightning as pl
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from omegaconf import OmegaConf
-from torch.cuda.amp import autocast
-from torch.nn import CTCLoss
-
+from deepspeech_pytorch.lwlrap_loss import *
 from deepspeech_pytorch.configs.train_config import SpectConfig, BiDirectionalConfig, OptimConfig, AdamConfig, \
     SGDConfig, UniDirectionalConfig
-from deepspeech_pytorch.decoder import GreedyDecoder
-from deepspeech_pytorch.validation import CharErrorRate, WordErrorRate
-from deepspeech_pytorch.loader.data_loader import SpectrogramDataset, AudioDataLoader
-from deepspeech_pytorch.lwlrap_loss import LwLRAPLoss, LWLRAP
-
+import math
+from typing import List, Union
+import pytorch_lightning as pl
+from omegaconf import OmegaConf
 
 class SequenceWise(nn.Module):
     def __init__(self, module):
@@ -150,12 +137,14 @@ class DeepSpeech(pl.LightningModule):
                  ):
         super().__init__()
         self.save_hyperparameters()
-        self.model_cfg = model_cfg
+        # self.model_cfg = model_cfg
+        self.model_cfg = BiDirectionalConfig()
         self.precision = precision
         self.optim_cfg = optim_cfg
+        self.optim_cfg = AdamConfig()
         self.spect_cfg = spect_cfg
-        self.bidirectional = True if OmegaConf.get_type(model_cfg) is BiDirectionalConfig else False
-
+        self.bidirectional = True if OmegaConf.get_type(self.model_cfg) is BiDirectionalConfig else False
+        
         self.labels = labels
         num_classes = len(self.labels)
 
@@ -173,7 +162,7 @@ class DeepSpeech(pl.LightningModule):
         rnn_input_size = int(math.floor(rnn_input_size + 2 * 10 - 21) / 2 + 1)
         rnn_input_size *= 32
 
-        print("MODEL CFG", self.model_cfg)
+        print('LABELS \n', labels, '\n', len(labels)) 
         self.rnns = nn.Sequential(
             BatchRNN(
                 input_size=rnn_input_size,
@@ -208,15 +197,7 @@ class DeepSpeech(pl.LightningModule):
         self.inference_softmax = InferenceBatchSoftmax()
         # self.criterion = CTCLoss(blank=self.labels.index('_'), reduction='sum', zero_infinity=True)
         self.criterion = LWLRAP(precision=self.precision)
-        self.evaluation_decoder = GreedyDecoder(self.labels)  # Decoder used for validation
-        self.wer = WordErrorRate(
-            decoder=self.evaluation_decoder,
-            target_decoder=self.evaluation_decoder
-        )
-        self.cer = CharErrorRate(
-            decoder=self.evaluation_decoder,
-            target_decoder=self.evaluation_decoder
-        )
+     
         self.lwlrap = LWLRAP(precision=self.precision)
         self.loss = nn.L1Loss()
         self.sigmoid = nn.Sigmoid()
@@ -230,12 +211,12 @@ class DeepSpeech(pl.LightningModule):
 
         sizes = x.size()
         x = x.view(sizes[0], sizes[1] * sizes[2], sizes[3])  # Collapse feature dimension
-        
+
         x = x.transpose(1, 2).transpose(0, 1).contiguous()  # TxNxH
-        
+
         for rnn in self.rnns:
             x = rnn(x, output_lengths)
-        
+
         if not self.bidirectional:  # no need for lookahead layer in bidirectional
             x = self.lookahead(x)
 
@@ -246,79 +227,19 @@ class DeepSpeech(pl.LightningModule):
         # identity in training mode, softmax in eval mode
         # x = self.inference_softmax(x)
         x = get_output(x, mode='max')
+        # print('BEFORE SIGMOID', x.shape)
         x = self.sigmoid(x)
+        # print('OUTPUT SHAPE', x.shape)
         return x, output_lengths
 
-    def training_step(self, batch, batch_idx):
-        inputs, targets, input_percentages, target_sizes = batch
-        input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
-        out, output_sizes = self(inputs, input_sizes)
-        # out = out.transpose(0, 1)  # TxNxH
-        # out = out.log_softmax(-1)
-        # print('loss', self.criterion(out, targets))
-        # loss = self.criterion(out, targets, output_sizes, target_sizes)
-        train_lwlrap = self.criterion(preds=out, labels=targets)
-        train_loss = self.loss(out, targets)
-        self.log('Train/train_lwlrap', train_lwlrap, prog_bar=True)
-        self.log('Train/train_loss', train_loss, prog_bar=True)
-        return train_loss
-
-    def validation_step(self, batch, batch_idx):
-        inputs, targets, input_percentages, target_sizes = batch
-        input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
-        inputs = inputs.to(self.device)
-        with autocast(enabled=self.precision == 16):
-            out, output_sizes = self(inputs, input_sizes)
-        loss = self.lwlrap(preds=out, labels=targets)
-        # print('Validation LwLrap: ', loss)
-        self.log('val_loss', loss,  prog_bar=True, on_epoch=True)   
-        
-    def training_epoch_end(self, outputs):
-        print("\n Outputs \n", type(outputs), outputs[0])
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        # avg_lwlrap = outputs[-1]['lwlrap']
-        self.log('Train/Loss_per_epoch', avg_loss, on_epoch=True)
-        # self.log('Train/LwLRAP_per_epoch', avg_lwlrap, on_epoch=True)
-
-
-    def configure_optimizers(self):
-        if OmegaConf.get_type(self.optim_cfg) is SGDConfig:
-            optimizer = torch.optim.SGD(
-                params=self.parameters(),
-                lr=self.optim_cfg.learning_rate,
-                momentum=self.optim_cfg.momentum,
-                nesterov=True,
-                weight_decay=self.optim_cfg.weight_decay
-            )
-        elif OmegaConf.get_type(self.optim_cfg) is AdamConfig:
-            optimizer = torch.optim.AdamW(
-                params=self.parameters(),
-                lr=self.optim_cfg.learning_rate,
-                betas=self.optim_cfg.betas,
-                eps=self.optim_cfg.eps,
-                weight_decay=self.optim_cfg.weight_decay
-            )
-        else:
-            raise ValueError("Optimizer has not been specified correctly.")
-
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(
-            optimizer=optimizer,
-            gamma=self.optim_cfg.learning_anneal
-        )
-        return [optimizer], [scheduler]
-
+       
     def get_seq_lens(self, input_length):
-        """
-        Given a 1D Tensor or Variable containing integer sequence lengths, return a 1D tensor or variable
-        containing the size sequences that will be output by the network.
-        :param input_length: 1D Tensor
-        :return: 1D Tensor scaled by model
-        """
         seq_len = input_length
         for m in self.conv.modules():
-            if type(m) == nn.modules.conv.Conv2d:
-                seq_len = ((seq_len + 2 * m.padding[1] - m.dilation[1] * (m.kernel_size[1] - 1) - 1) // m.stride[1] + 1)
+           if type(m) == nn.modules.conv.Conv2d:
+              seq_len = ((seq_len + 2 * m.padding[1] - m.dilation[1] * (m.kernel_size[1] - 1) - 1) // m.stride[1] + 1)
         return seq_len.int()
+
 
 def get_output(x, mode='mean'):
     """
@@ -334,38 +255,3 @@ def get_output(x, mode='mean'):
     elif mode == 'max':
         out = torch.max(x, dim=1)
         return out.values
-
-
-
-
-if __name__ == '__main__':
-    LABELS = ["_", "'", "A", "B", "C", "D", "E", "F", "G",
-              "H", "I", "J", "K", "L", "M", "N", "O", "P",
-              "Q", "R", "S", "T", "U", "V", "W", "X", "Y",
-              "Z", " "
-              ]
-
-    path_input = '/home/coml/Documents/Victoria/noise_classifier/deepspeech_model/data/Freesound_dataset'
-    test_dataset = SpectrogramDataset(audio_conf=SpectConfig(), input_path=path_input, labels=LABELS)
-    test_loader = AudioDataLoader(dataset=test_dataset)
-    model = DeepSpeech(labels=LABELS, precision=32, spect_cfg=SpectConfig(),
-                       optim_cfg=AdamConfig(), model_cfg=BiDirectionalConfig()) # args: 'labels', 'model_cfg', 'precision', 'optim_cfg', and 'spect_cfg'
-    # im = test_loader[0]
-
-    NUM_CLASSES = 29 # Corresponds to the length of the labels
-    # layer = nn.Linear()
-
-    for i, data in enumerate(test_loader, 0):
-        # print('DATA \n',  data[1], '\n', data[2], '\n', data[3], '\n')
-        print('\n Sample {}: input length {}'.format(i, data[3]))
-        out, length = model.forward(data[0], data[3])
-        print('   Outputs shapes: {} {}'.format(out.shape, length))
-        print('Final output', out)
-
-        """
-        out = out.transpose(0, 1)  # TxNxH
-        print('   Outputs shape after transpose: {} \n {}'.format(out.shape, out))
-        out2 = out.softmax(-1)
-        print('   Outputs shape after Softmax: {} \n {}'.format(out2.shape, out2))
-        out = out.log_softmax(-1)
-        print('   Outputs shape after logsoftmax: {} \n {}'.format(out.shape, out))"""
