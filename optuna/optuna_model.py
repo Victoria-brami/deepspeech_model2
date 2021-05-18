@@ -226,9 +226,10 @@ class DeepSpeech(pl.LightningModule):
 
         # identity in training mode, softmax in eval mode
         # x = self.inference_softmax(x)
-        x = get_output(x, mode='max')
+        x = get_output(x, mode='sum')
         # print('BEFORE SIGMOID', x.shape)
-        x = self.sigmoid(x)
+        # x = self.sigmoid(x)
+        x = normalize_tensor(x)
         # print('OUTPUT SHAPE', x.shape)
         return x, output_lengths
 
@@ -255,3 +256,9 @@ def get_output(x, mode='mean'):
     elif mode == 'max':
         out = torch.max(x, dim=1)
         return out.values
+    elif mode == 'sum':
+        out = torch.sum(x, dim=1)
+        return out
+
+def normalize_tensor(x):
+    return x / x.sum()

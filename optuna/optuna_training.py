@@ -36,7 +36,7 @@ class MetricsCallback(Callback):
 
     def on_validation_end(self, trainer, pl_module):
         print()
-        print('Validation loss: {}'.format(trainer.callback_metrics['val_loss']))
+        print('Validation lwlrap: {}'.format(trainer.callback_metrics['val_lwlrap']))
         self.metrics.append(trainer.callback_metrics)
 
 
@@ -72,10 +72,12 @@ class LightningNet(pl.LightningModule):
         else:
             chosen_loss = optuna_config.default_loss
 
-        self.loss = nn.L1Loss()
+        self.loss = nn.MSELoss()
 
         if chosen_loss == 'mseloss':
             self.loss = nn.MSELoss()
+        elif chosen_loss == 'crossentropy':
+            self.loss = nn.CrossEntropy()
         elif chosen_loss == 'bcewithlogitsloss':
             self.loss = nn.BCEWithLogitsLoss()
 
@@ -97,6 +99,12 @@ class LightningNet(pl.LightningModule):
         input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
         out, output_sizes = self(inputs, input_sizes)
         val_lwlrap = self.lwlrap(out, targets)
+        return {'batch_val_lwlrap': val_lwlrap}
+
+    def validation_epoch_end(self, outputs):
+        total_val_lwlrap = torch.stack([x['batch_val_lwlrap'] for x in outputs]).mean()
+        self.log('val_lwlrap', total_val_lwlrap)
+        return {'val_lwlrap': total_val_lwlrap}
 
     def configure_optimizers(self):
         # Learning rate suggestion
@@ -158,8 +166,8 @@ def objective(trial):
         checkpoint_callback=checkpoint_callback,
         max_epochs=exec_config.epochs,
         gpus=exec_config.gpus,
-        # callbacks=[metrics_callback],
-        callbacks=[PyTorchLightningPruningCallback(trial, monitor="val_lwlrap")],
+        callbacks=[metrics_callback],
+        # callbacks=[PyTorchLightningPruningCallback(trial, monitor="val_lwlrap")],
         # early_stop_callback=PyTorchLightningPruningCallback(trial, monitor="val_lwlrap"),
         amp_level='O1',
         precision=16,

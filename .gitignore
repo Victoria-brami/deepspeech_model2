@@ -2,4 +2,5 @@ outputs/
 .idea/
 __pycache__/
 data/Freesound_dataset/
+optuna/__pycache__/
 venv/
