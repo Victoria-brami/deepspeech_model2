@@ -6,6 +6,7 @@ import flask
 import joblib
 import optuna
 import datetime
+import pandas
 
 import plotly.graph_objects as go
 from plotly.subplots import  make_subplots
@@ -13,7 +14,7 @@ from plotly.subplots import  make_subplots
 
 def get_layout():
     try:
-        study = joblib.load('study.pkl')
+        study = joblib.load('optuna_studies/study.pkl')
     except FileNotFoundError:
         return html.Div(children=[dcc.Markdown('''
         ### Optuna Study Dashboard
@@ -34,7 +35,7 @@ def get_layout():
 
     pruned_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
     n_pruned_trials = len(pruned_trials)
-    completed_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETED]
+    completed_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
     n_completed_trials = len(completed_trials)
 
     trial_param_names, best_values = [k for k, i in study.best_trial.params.items()], []
@@ -89,4 +90,4 @@ app.config.suppress_callback_exceptions = True
 app.layout= get_layout
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', debug=False, port=8050)
+    app.run_server(host='0.0.0.0', debug=False, port=8040)

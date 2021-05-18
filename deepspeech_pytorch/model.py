@@ -334,6 +334,12 @@ def get_output(x, mode='mean'):
     elif mode == 'max':
         out = torch.max(x, dim=1)
         return out.values
+    elif mode == 'sum':
+        out = torch.sum(x, dim=1)
+        return out
+
+def normalize_tensor(x):
+    return x / x.sum()
 
 
 

@@ -6,7 +6,7 @@ from optuna_model import DeepSpeech
 from deepspeech_pytorch.configs.train_config import DeepSpeechConfig, GCSCheckpointConfig, AdamConfig
 from deepspeech_pytorch.loader.data_module import DeepSpeechDataModule
 from optuna_training_configuration import OptunaConfig, ExecutionConfig
-from deepspeech_pytorch.lwlrap_loss import LWLRAP
+from deepspeech_pytorch.lwlrap_loss import LWLRAP, RMSELoss
 import torch
 import json
 import torch.nn as nn
@@ -26,7 +26,8 @@ optuna_config = OptunaConfig()
 exec_config = ExecutionConfig()
 
 def dump_study_callback(study, trial):
-    joblib.dump(study, 'study.pkl')
+    os.makedirs('optuna_studies')
+    joblib.dump(study, 'optuna_studies/study.pkl')
 
 
 class MetricsCallback(Callback):
@@ -77,10 +78,11 @@ class LightningNet(pl.LightningModule):
         if chosen_loss == 'mseloss':
             self.loss = nn.MSELoss()
         elif chosen_loss == 'crossentropy':
-            self.loss = nn.CrossEntropy()
+            self.loss = nn.CrossEntropyLoss()
         elif chosen_loss == 'bcewithlogitsloss':
             self.loss = nn.BCEWithLogitsLoss()
-
+        elif chosen_loss == 'rmseloss':
+            self.loss = RMSELoss()
         self.lwlrap = LWLRAP(precision=16)
 
     def forward(self, inputs, inputs_sizes):
@@ -91,7 +93,10 @@ class LightningNet(pl.LightningModule):
         input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
         out, output_sizes = self(inputs, input_sizes)
         # print('TENSORS TYPES', out.type(), targets.type())
-        train_loss = self.loss(out, targets.half())
+        if self.loss._get_name() != 'CrossEntropyLoss':
+            train_loss = self.loss(out, targets.half())
+        else:
+            train_loss = self.loss(out.long(), targets)
         return train_loss
 
     def validation_step(self, batch, batch_idx):
@@ -184,7 +189,6 @@ def objective(trial):
     model = LightningNet(trial)  # this initialisation depends on the trial argument
     trainer.fit(model, data_loader)
 
-    print("METRIC ", metrics_callback.metrics)
     return metrics_callback.metrics[-1]["val_lwlrap"]
 
 
@@ -219,4 +223,4 @@ if __name__ == "__main__":
         print("    {}: {}".format(key, value))
 
     # dumps the study for use with dash_study.py
-    joblib.dump(study, 'study_finished.pkl')
+    joblib.dump(study, 'optuna_studies/study_finished.pkl')

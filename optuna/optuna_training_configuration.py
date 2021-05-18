@@ -6,7 +6,7 @@ class ExecutionConfig(object):
     """ Configuration of the training loop"""
 
     def __init__(self):
-        self.epochs = 15 # 5
+        self.epochs = 5 # 5
         self.gpus = 1
         self.num_validation_sanity_steps = 0
 
@@ -33,7 +33,7 @@ class OptunaConfig(object):
         self.suggest_optimiser = 'Adam'  # default is hardcoded to Adam
 
         # Suggest loss
-        self.suggest_loss = ['mseloss', 'crossentropy'] # None
+        self.suggest_loss = ['rmseloss', 'mseloss', 'crossentropy'] # None
         self.default_loss = 'mseloss'
 
         self.suggest_learning_rate = None  # [9e-4, 7e-3]
