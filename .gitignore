@@ -4,3 +4,5 @@ __pycache__/
 data/Freesound_dataset/
 optuna/__pycache__/
 venv/
+optuna_studies/
+test_misc/

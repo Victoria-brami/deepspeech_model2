@@ -245,8 +245,9 @@ class DeepSpeech(pl.LightningModule):
 
         # identity in training mode, softmax in eval mode
         # x = self.inference_softmax(x)
-        x = get_output(x, mode='max')
-        x = self.sigmoid(x)
+        x = get_output(x, mode='sum')
+        # x = self.sigmoid(x)
+        x = normalize_tensor(x)
         return x, output_lengths
 
     def training_step(self, batch, batch_idx):
