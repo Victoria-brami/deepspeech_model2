@@ -1,5 +1,6 @@
 import os
 import pytorch_lightning as pl
+from torch.cuda.amp import autocast
 from pytorch_lightning import Callback
 from torch.optim import Adam, AdamW, SGD
 from optuna_model import DeepSpeech
@@ -26,7 +27,6 @@ optuna_config = OptunaConfig()
 exec_config = ExecutionConfig()
 
 def dump_study_callback(study, trial):
-    os.makedirs('optuna_studies')
     joblib.dump(study, 'optuna_studies/study.pkl')
 
 
@@ -73,16 +73,18 @@ class LightningNet(pl.LightningModule):
         else:
             chosen_loss = optuna_config.default_loss
 
-        self.loss = nn.MSELoss()
-
         if chosen_loss == 'mseloss':
             self.loss = nn.MSELoss()
         elif chosen_loss == 'crossentropy':
             self.loss = nn.CrossEntropyLoss()
         elif chosen_loss == 'bcewithlogitsloss':
             self.loss = nn.BCEWithLogitsLoss()
+        elif chosen_loss == 'binarycrossentropy':
+            self.loss = nn.BCELoss()
         elif chosen_loss == 'rmseloss':
             self.loss = RMSELoss()
+        else:
+            self.loss = nn.MSELoss()
         self.lwlrap = LWLRAP(precision=16)
 
     def forward(self, inputs, inputs_sizes):
@@ -102,7 +104,8 @@ class LightningNet(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         inputs, targets, input_percentages, target_sizes = batch
         input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
-        out, output_sizes = self(inputs, input_sizes)
+        with autocast(enabled=16):
+           out, output_sizes = self(inputs, input_sizes)
         val_lwlrap = self.lwlrap(out, targets)
         return {'batch_val_lwlrap': val_lwlrap}
 

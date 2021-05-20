@@ -17,7 +17,7 @@ from deepspeech_pytorch.configs.train_config import SpectConfig, BiDirectionalCo
 from deepspeech_pytorch.decoder import GreedyDecoder
 from deepspeech_pytorch.validation import CharErrorRate, WordErrorRate
 from deepspeech_pytorch.loader.data_loader import SpectrogramDataset, AudioDataLoader
-from deepspeech_pytorch.lwlrap_loss import LwLRAPLoss, LWLRAP
+from deepspeech_pytorch.lwlrap_loss import LwLRAPLoss, LWLRAP, RMSELoss
 
 
 class SequenceWise(nn.Module):
@@ -156,6 +156,7 @@ class DeepSpeech(pl.LightningModule):
         self.spect_cfg = spect_cfg
         self.bidirectional = True if OmegaConf.get_type(model_cfg) is BiDirectionalConfig else False
 
+        print('OMEGA CONF \n', model_cfg)
         self.labels = labels
         num_classes = len(self.labels)
 
@@ -173,7 +174,6 @@ class DeepSpeech(pl.LightningModule):
         rnn_input_size = int(math.floor(rnn_input_size + 2 * 10 - 21) / 2 + 1)
         rnn_input_size *= 32
 
-        print("MODEL CFG", self.model_cfg)
         self.rnns = nn.Sequential(
             BatchRNN(
                 input_size=rnn_input_size,
@@ -209,16 +209,18 @@ class DeepSpeech(pl.LightningModule):
         # self.criterion = CTCLoss(blank=self.labels.index('_'), reduction='sum', zero_infinity=True)
         self.criterion = LWLRAP(precision=self.precision)
         self.evaluation_decoder = GreedyDecoder(self.labels)  # Decoder used for validation
-        self.wer = WordErrorRate(
-            decoder=self.evaluation_decoder,
-            target_decoder=self.evaluation_decoder
-        )
-        self.cer = CharErrorRate(
-            decoder=self.evaluation_decoder,
-            target_decoder=self.evaluation_decoder
-        )
+        # self.wer = WordErrorRate(
+        #     decoder=self.evaluation_decoder,
+        #     target_decoder=self.evaluation_decoder
+        # )
+        # self.cer = CharErrorRate(
+        #     decoder=self.evaluation_decoder,
+        #     target_decoder=self.evaluation_decoder
+        # )
         self.lwlrap = LWLRAP(precision=self.precision)
-        self.loss = nn.L1Loss()
+        self.loss = RMSELoss()
+        self.softmax = nn.Softmax(dim=-1)
+        # self.loss = nn.BCEWithLogitsLoss()
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x, lengths):
@@ -245,9 +247,11 @@ class DeepSpeech(pl.LightningModule):
 
         # identity in training mode, softmax in eval mode
         # x = self.inference_softmax(x)
+        x = self.softmax(x)
         x = get_output(x, mode='sum')
         # x = self.sigmoid(x)
         x = normalize_tensor(x)
+        # x = self.batch(x)
         return x, output_lengths
 
     def training_step(self, batch, batch_idx):
@@ -258,10 +262,11 @@ class DeepSpeech(pl.LightningModule):
         # out = out.log_softmax(-1)
         # print('loss', self.criterion(out, targets))
         # loss = self.criterion(out, targets, output_sizes, target_sizes)
-        train_lwlrap = self.criterion(preds=out, labels=targets)
-        train_loss = self.loss(out, targets)
-        self.log('Train/train_lwlrap', train_lwlrap, prog_bar=True)
-        self.log('Train/train_loss', train_loss, prog_bar=True)
+        train_lwlrap = self.criterion._batch_compute(preds=out, labels=targets)
+        self.criterion.update(preds=out, target=targets)
+        train_loss = self.loss(out, targets.float())
+        self.log('Train/train_lwlrap', self.criterion.compute(), on_step=True, on_epoch=True,  prog_bar=True)
+        self.log('Train/train_loss', train_loss, on_epoch=True, on_step=True)
         return train_loss
 
     def validation_step(self, batch, batch_idx):
@@ -270,16 +275,22 @@ class DeepSpeech(pl.LightningModule):
         inputs = inputs.to(self.device)
         with autocast(enabled=self.precision == 16):
             out, output_sizes = self(inputs, input_sizes)
-        loss = self.lwlrap(preds=out, labels=targets)
-        # print('Validation LwLrap: ', loss)
-        self.log('val_loss', loss,  prog_bar=True, on_epoch=True)   
+        loss = self.lwlrap._batch_compute(preds=out, labels=targets)
+        self.lwlrap.update(preds=out, target=targets)
+        self.log('Validation/val_lwlrap', self.lwlrap.compute(), on_step=True, on_epoch=True)
+        return {'val_lwlrap': self.lwlrap.compute()}   
         
     def training_epoch_end(self, outputs):
-        print("\n Outputs \n", type(outputs), outputs[0])
         avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        # avg_lwlrap = outputs[-1]['lwlrap']
+        avg_lwlrap = self.criterion.compute() 
+        self.log('Train/LwLRAP_per_epoch', avg_lwlrap, on_epoch=True)
         self.log('Train/Loss_per_epoch', avg_loss, on_epoch=True)
-        # self.log('Train/LwLRAP_per_epoch', avg_lwlrap, on_epoch=True)
+        
+    def validation_epoch_end(self, outputs):
+        total_val_lwlrap = self.lwlrap.compute()
+        print()
+        print('Validation LWLRAP: ', total_val_lwlrap)
+        self.log('Validation/val_lwlrap', total_val_lwlrap)
 
 
     def configure_optimizers(self):
@@ -339,9 +350,9 @@ def get_output(x, mode='mean'):
         out = torch.sum(x, dim=1)
         return out
 
-def normalize_tensor(x):
-    return x / x.sum()
 
+def normalize_tensor(x):
+   return x / x.sum()
 
 
 
@@ -352,7 +363,7 @@ if __name__ == '__main__':
               "Z", " "
               ]
 
-    path_input = '/home/coml/Documents/Victoria/noise_classifier/deepspeech_model/data/Freesound_dataset'
+    path_input = '/home/coml/Documents/Victoria/noise_classifier/deepspeech_model/data/CommonVoice_dataset/train'
     test_dataset = SpectrogramDataset(audio_conf=SpectConfig(), input_path=path_input, labels=LABELS)
     test_loader = AudioDataLoader(dataset=test_dataset)
     model = DeepSpeech(labels=LABELS, precision=32, spect_cfg=SpectConfig(),

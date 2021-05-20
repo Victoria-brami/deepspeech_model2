@@ -7,8 +7,10 @@ from deepspeech_pytorch.loader.data_module import DeepSpeechDataModule
 from deepspeech_pytorch.model import DeepSpeech
 from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
-from pytorch_lightning import seed_everything
+from pytorch_lightning import seed_everything, Callback
 from pytorch_lightning.loggers import TensorBoardLogger
+
+
 
 def train(cfg: DeepSpeechConfig):
     seed_everything(cfg.seed)
@@ -48,7 +50,7 @@ def train(cfg: DeepSpeechConfig):
         precision=cfg.trainer.precision,
         spect_cfg=cfg.data.spect
     )
-
+    print('\n TRAINER CALLBACK: ', cfg.trainer.checkpoint_callback)
     trainer = hydra.utils.instantiate(
         config=cfg.trainer,
         replace_sampler_ddp=False,

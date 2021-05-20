@@ -347,6 +347,19 @@ def LWLRAPKaggle(preds, labels):
 
 
 
+class RMSELoss(nn.Module):
+
+    def __init__(self):
+       super().__init__()
+       self.mse = nn.MSELoss()
+       self.eps = 1e-6
+
+    def forward(self, out, targets):
+       loss = torch.sqrt(self.mse(out, targets) + self.eps)
+       return loss
+
+
+
 if __name__ == '__main__':
     input = torch.tensor([[0.1, 0.4, 0.3, 0.8], [0.6, 0.1, 0.9, 0.3], [0.5, 0.0, 0.9, 0.4]])
     target = torch.tensor([[1, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 1]])

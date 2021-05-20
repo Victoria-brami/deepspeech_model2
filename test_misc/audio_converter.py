@@ -13,6 +13,13 @@ sound = AudioSegment.from_mp3(input_file)
 sound.export(output_file, format="wav")
 
 def convert_to_wav(data_path, input_file, output_path):
+    """
+
+    :param data_path:
+    :param input_file:
+    :param output_path:
+    :return:
+    """
 
     os.makedirs(output_path, exist_ok=True)
 
