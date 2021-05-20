@@ -7,7 +7,7 @@ class ExecutionConfig(object):
 
     def __init__(self):
         self.epochs = 30 # 5
-        self.gpus = 0
+        self.gpus = 1
         self.num_validation_sanity_steps = 0
 
         os.makedirs('optuna_training_weights/', exist_ok=True)
