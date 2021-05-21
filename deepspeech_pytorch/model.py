@@ -277,7 +277,7 @@ class DeepSpeech(pl.LightningModule):
             out, output_sizes = self(inputs, input_sizes)
         loss = self.lwlrap._batch_compute(preds=out, labels=targets)
         self.lwlrap.update(preds=out, target=targets)
-        self.log('Validation/val_lwlrap', self.lwlrap.compute(), on_step=True, on_epoch=True)
+        self.log('Validation/val_lwlrap', self.lwlrap.compute(), on_epoch=True)
         return {'val_lwlrap': self.lwlrap.compute()}   
         
     def training_epoch_end(self, outputs):

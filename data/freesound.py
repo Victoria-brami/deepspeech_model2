@@ -59,6 +59,16 @@ FREESOUND_WAV_URLS = {
     #'test': {'audio_test.zip': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_test.zip?download=1'}
     }
 
+FREESOUND_WAV_URLS = {'train_noisy': {
+        'audio_train_noisy.z01': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_train_noisy.z01?download=1',
+        'audio_train_noisy.z02': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_train_noisy.z02?download=1',
+        'audio_train_noisy.z03': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_train_noisy.z03?download=1',
+        'audio_train_noisy.z04': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_train_noisy.z04?download=1',
+        'audio_train_noisy.z05': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_train_noisy.z05?download=1',
+        'audio_train_noisy.z06': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_train_noisy.z06?download=1',
+        'audio_train_noisy.zip': 'https://zenodo.org/record/3612637/files/FSDKaggle2019.audio_train_noisy.zip?download=1',
+        }}
+
 FREESOUND_ANNS_URL = 'https://zenodo.org/record/3612637/files/FSDKaggle2019.meta.zip?download=1'
 
 
@@ -206,7 +216,7 @@ def create_manifest(data_path, output_name, manifest_path, file_extension='wav')
 
 def create_filtered_manifest(data_type, data_path, output_name, manifest_path, file_extension='wav'):
     data_path = os.path.abspath(data_path)
-    file_paths = list(Path(data_path).rglob(f"*.{file_extension}"))
+    # file_paths = list(Path(data_path).rglob(f"*.{file_extension}"))
 
     output_path = Path(manifest_path) / output_name
     output_path.parent.mkdir(exist_ok=True, parents=True)

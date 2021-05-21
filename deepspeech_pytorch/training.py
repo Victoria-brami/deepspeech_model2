@@ -20,6 +20,8 @@ def train(cfg: DeepSpeechConfig):
         labels = json.load(label_file)
         print('Loaded Labels', labels)
 
+    print('CFG CHEKPOINT', cfg.checkpoint)
+
     if cfg.trainer.checkpoint_callback:
         if OmegaConf.get_type(cfg.checkpoint) is GCSCheckpointConfig:
             checkpoint_callback = GCSCheckpointHandler(

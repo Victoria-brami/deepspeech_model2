@@ -6,3 +6,4 @@ optuna/__pycache__/
 venv/
 optuna_studies/
 test_misc/
+*.swp
