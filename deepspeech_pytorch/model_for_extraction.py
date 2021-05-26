@@ -162,7 +162,7 @@ class Lookahead(nn.Module):
                + ', context=' + str(self.context) + ')'
 
 
-class DeepSpeech(pl.LightningModule):
+class DeepSpeech(nn.Module):
     def __init__(self,
                  labels: List,
                  model_cfg: Union[UniDirectionalConfig, BiDirectionalConfig],
@@ -321,44 +321,6 @@ class DeepSpeech(pl.LightningModule):
         self.lwlrap.update(preds=out, target=targets)
         self.log('Validation/val_lwlrap', self.lwlrap.compute(), on_step=True, on_epoch=True)
         return {'val_lwlrap': self.lwlrap.compute()}
-
-    def training_epoch_end(self, outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        avg_lwlrap = self.criterion.compute()
-        self.log('Train/LwLRAP_per_epoch', avg_lwlrap, on_epoch=True)
-        self.log('Train/Loss_per_epoch', avg_loss, on_epoch=True)
-
-    def validation_epoch_end(self, outputs):
-        total_val_lwlrap = self.lwlrap.compute()
-        print()
-        print('Validation LWLRAP: ', total_val_lwlrap)
-        self.log('Validation/val_lwlrap', total_val_lwlrap)
-
-    def configure_optimizers(self):
-        if OmegaConf.get_type(self.optim_cfg) is SGDConfig:
-            optimizer = torch.optim.SGD(
-                params=self.parameters(),
-                lr=self.optim_cfg.learning_rate,
-                momentum=self.optim_cfg.momentum,
-                nesterov=True,
-                weight_decay=self.optim_cfg.weight_decay
-            )
-        elif OmegaConf.get_type(self.optim_cfg) is AdamConfig:
-            optimizer = torch.optim.AdamW(
-                params=self.parameters(),
-                lr=self.optim_cfg.learning_rate,
-                betas=self.optim_cfg.betas,
-                eps=self.optim_cfg.eps,
-                weight_decay=self.optim_cfg.weight_decay
-            )
-        else:
-            raise ValueError("Optimizer has not been specified correctly.")
-
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(
-            optimizer=optimizer,
-            gamma=self.optim_cfg.learning_anneal
-        )
-        return [optimizer], [scheduler]
 
     def get_seq_lens(self, input_length):
         """
