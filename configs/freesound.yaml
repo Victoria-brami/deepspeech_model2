@@ -1,0 +1,19 @@
+# @package _global_
+data:
+  train_path: data/Freesound_dataset/freesound_train_curated_manifest_filtered.json
+  val_path: data/Freesound_dataset/freesound_train_curated_manifest_filtered.json
+  num_workers: 8
+  augmentation:
+    spec_augment: True
+trainer:
+  max_epochs: 400
+  gpus: 1
+  precision: 16
+  gradient_clip_val: 400  # Norm cutoff to prevent explosion of gradients
+  accelerator: ddp
+  plugins: ddp_sharded
+  checkpoint_callback: True
+checkpoint:
+  save_top_k: 1
+  monitor: "Validation/val_lwlrap"
+  verbose: True
