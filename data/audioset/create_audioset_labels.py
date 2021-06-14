@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import os
 from tqdm.notebook import tqdm
+import sys
 from pathlib import Path, PosixPath
 
 labels = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_guitar', 'Bark', 'Bass_drum', 'Bass_guitar',
@@ -42,8 +43,48 @@ def create_json_file(list_of_labels, path_to_json='/home/coml/Documents/Victoria
 
 
 # Define manifest creation function
-def create_manifest():
-    return None
+
+def create_manifest(data_path, output_name, manifest_path, file_extension='wav', num_classes=183):
+    """
+
+    :param data_path: (str) path to the folder where all the wav files are
+    :param output_name: (str) name of the manifest, that will be a json file dataset_manfest_datatype_num_classes.json
+    :param manifest_path: (str) directory in whish the manifest will be stored
+    :param file_extension: (str) wav file per default
+    :return:
+    """
+    data_path = os.path.abspath(data_path)
+    file_paths = list(Path(data_path).rglob(f"*.{file_extension}"))
+
+    output_path = Path(manifest_path) / output_name
+    output_path.parent.mkdir(exist_ok=True, parents=True)
+    os.makedirs(os.path.join(data_path, 'txt_{}'.format(num_classes)), exist_ok=True)
+    os.makedirs(os.path.join(data_path, 'wav'), exist_ok=True)
+
+
+    manifest = {
+        'root_path': data_path,
+        'samples': []
+    }
+
+    for wav_path in tqdm(file_paths, total=len(file_paths)):
+        wav_path = wav_path.relative_to(data_path)
+        sys.stdout.write(' \r WAV PATH:   {} '.format(wav_path))
+
+        # Define path to write in annotations
+        wav_file = str(wav_path).split('/')[0]
+        txt_name = PosixPath(str(wav_file).split('.')[0] + '.txt')
+        transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_name
+        new_wav_path = data_path / PosixPath('wav') / wav_file
+        # sys.stdout.write(' \r NEW WAV PATH:   {} \n'.format(wav_file))
+        # Write new data in the manifest
+        manifest['samples'].append({
+            'wav_path': new_wav_path.as_posix(),
+            'transcript_path': transcript_path.as_posix()
+        })
+        os.system('mv {} {}'.format(data_path / wav_path, data_path / PosixPath('wav')))
+
+    output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
 # define parsing transcript function
 def _parse_labels(data_path, csv_file, path_to_csv_labels,
