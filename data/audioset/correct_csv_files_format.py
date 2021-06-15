@@ -2,22 +2,12 @@ import pandas as pd
 import argparse
 from tqdm.notebook import tqdm
 import sys
+import os
 
 """ 
     From the labels CSV File, add a new column ato audioset sounds csv  file with labels transcription
 """
 
-def preprocess_csv_files(path_to_csv):
-    with open(path_to_csv, 'r', encoding='utf8') as transcript_file:
-        transcript = transcript_file.read().replace(", ", "_and_")
-    f = open(path_to_csv, 'w')
-    f.write(transcript)
-
-def preprocess_csv_files_2(path_to_csv):
-    with open(path_to_csv, 'r', encoding='utf8') as transcript_file_2:
-        transcript2 = transcript_file_2.read().replace(" ", "_")
-    f2 = open(path_to_csv, 'w')
-    f2.write(transcript2)
 
 def preprocess_csv_files_3(path_to_csv):
     with open(path_to_csv, 'r', encoding='utf8') as transcript_file_2:
@@ -47,8 +37,10 @@ def translate_labels(csv_data_file, labels_encoding, path_to_csv_file):
 
     return None
 
-def convert_false_csv_files_to_dataframes(path_to_csv):
+def convert_false_csv_files_to_dataframes(path_to_folder, data_type):
     new_data = dict(YTID=[], start_seconds=[], end_seconds=[], positive_labels=[])
+
+    path_to_csv = os.path.join(path_to_folder, 'csv', '{}_segments.csv').format(data_type)
 
     file1 = open(path_to_csv, 'r')
     all_lines = file1.readlines()
@@ -103,9 +95,9 @@ def align_translated_labels_with_csv_files(path_to_labels, path_to_csv_files):
     data['translated_positive_labels'] = translated_list_of_labels
     data.to_csv(path_to_csv_files, index=False)
 
-def filter_dataset_on_non_human_labels(path_to_csv_file, path_to_filtered_labels):
+def filter_dataset_on_non_human_labels(path_to_folder, path_to_filtered_labels, data_type):
 
-
+    path_to_csv_file = os.path.join(path_to_folder, 'csv', '{}_segments.csv').format(data_type)
     data = pd.read_csv(path_to_csv_file)
 
     labels = pd.read_csv(path_to_filtered_labels)
