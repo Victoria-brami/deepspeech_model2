@@ -4,6 +4,7 @@ import os
 from tqdm.notebook import tqdm
 import sys
 from pathlib import Path, PosixPath
+import argparse
 
 labels = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_guitar', 'Bark', 'Bass_drum', 'Bass_guitar',
           'Bathtub_(filling_or_washing)', 'Bicycle_bell',
@@ -40,11 +41,9 @@ def create_json_file(list_of_labels, path_to_json='/home/coml/Documents/Victoria
     with open(os.path.join(path_to_json, 'labels_{}.json'.format(number_of_labels)), 'w') as json_file:
         json.dump(list_of_labels, json_file, indent=4)
 
-
-
 # Define manifest creation function
 
-def create_manifest(data_path, output_name, manifest_path, file_extension='wav', num_classes=183):
+def create_manifest(data_path, output_name, manifest_path, file_extension='wav', data_type='eval', num_classes=183):
     """
 
     :param data_path: (str) path to the folder where all the wav files are
@@ -53,13 +52,15 @@ def create_manifest(data_path, output_name, manifest_path, file_extension='wav',
     :param file_extension: (str) wav file per default
     :return:
     """
-    data_path = os.path.abspath(data_path)
-    file_paths = list(Path(data_path).rglob(f"*.{file_extension}"))
+    data_path = os.path.abspath(Path(data_path) / PosixPath(data_type))
+    file_paths = list(Path(data_path / PosixPath('wav')).rglob(f"*.{file_extension}"))
 
     output_path = Path(manifest_path) / output_name
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    os.makedirs(os.path.join(data_path, 'txt_{}'.format(num_classes)), exist_ok=True)
-    os.makedirs(os.path.join(data_path, 'wav'), exist_ok=True)
+    os.makedirs(os.path.join(data_path,  'txt_{}'.format(num_classes)), exist_ok=True)
+    os.makedirs(os.path.join(data_path,  'wav'), exist_ok=True)
+
+    print(file_paths)
 
 
     manifest = {
@@ -72,24 +73,26 @@ def create_manifest(data_path, output_name, manifest_path, file_extension='wav',
         sys.stdout.write(' \r WAV PATH:   {} '.format(wav_path))
 
         # Define path to write in annotations
-        wav_file = str(wav_path).split('/')[0]
-        txt_name = PosixPath(str(wav_file).split('.')[0] + '.txt')
-        transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_name
+        wav_file = str(wav_path).split('/')[-1]
+        txt_name = PosixPath(wav_file.replace('.wav', '.txt'))
+        transcript_path = data_path /  PosixPath('txt_{}'.format(num_classes)) / txt_name
         new_wav_path = data_path / PosixPath('wav') / wav_file
+        print('transcript path', transcript_path)
+        print('wav path', new_wav_path)
+        print()
         # sys.stdout.write(' \r NEW WAV PATH:   {} \n'.format(wav_file))
         # Write new data in the manifest
         manifest['samples'].append({
             'wav_path': new_wav_path.as_posix(),
             'transcript_path': transcript_path.as_posix()
         })
-        os.system('mv {} {}'.format(data_path / wav_path, data_path / PosixPath('wav')))
+        # os.system('mv {} {}'.format(data_path / wav_path, data_path / PosixPath('wav')))
 
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
 # define parsing transcript function
-def _parse_labels(data_path, csv_file, path_to_csv_labels,
-                  path_to_wavs='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset',
-                  data_type='test'): #eval, unbalanced_train of balanced_train_function
+def _parse_labels(data_path, path_to_csv_labels,
+                  data_type='eval'): #eval, unbalanced_train of balanced_train_function
     """
 
     :param data_path: (str) path to the directory where the csv file is stored
@@ -97,12 +100,13 @@ def _parse_labels(data_path, csv_file, path_to_csv_labels,
     :param list_of_labels: Corresponding labels (human filtered or not)
     :return: Creates for each waw a txt file containing the encoded label
     """
-
-    csv_path = os.path.join(data_path, csv_file)
-    data_contents_df = pd.read_csv(csv_path)
-
     csv_labels = pd.read_csv(path_to_csv_labels)
     num_classes = len(csv_labels)
+
+    csv_file = '{}_segments_filtered_{}.csv'.format(data_type, num_classes)
+    csv_path = os.path.join(data_path, 'csv', csv_file)
+    data_contents_df = pd.read_csv(csv_path)
+
 
     for index, row in tqdm(data_contents_df.iterrows(), total=data_contents_df.shape[0]):
         # Get the labels name
@@ -115,10 +119,10 @@ def _parse_labels(data_path, csv_file, path_to_csv_labels,
             labels[idx] = 1
 
         # Create labels file
-        previous_path = PosixPath('audioset_{}'.format(data_type))
+        previous_path = PosixPath('{}'.format(data_type))
         # wav_path = row.fname
-        wav_path = os.path.join(path_to_wavs, 'audioset_{}'.format(data_type), '{}.wav'.format(row['YTID']))
-        txt_name = PosixPath(str(wav_path).replace('.wav', '.txt'))
+        wav_path = os.path.join(data_path, '{}'.format(data_type), 'wav', '{}.wav'.format(row['YTID']))
+        txt_name = PosixPath(row['YTID'] + '.txt')
 
         # create transcript path
         os.makedirs(data_path / previous_path / PosixPath('txt_{}'.format(num_classes)), exist_ok=True)
@@ -126,4 +130,29 @@ def _parse_labels(data_path, csv_file, path_to_csv_labels,
 
         with open(transcript_path, 'w') as json_file:
             json.dump(str(labels), json_file)
+
+
+def merge_manifests():
+    return None
+
+
+def build_argparse():
+    parser = argparse.ArgumentParser(description='Processes and Downloads Freesound dataset')
+    parser.add_argument('--data_type', type=str,
+                        default='balanced_train', choices=['eval', 'unbalanced_train', 'balanced_train'])
+    parser.add_argument('--path_to_audioset_folder', type=str,
+                        default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset')
+    parser.add_argument('--path_to_csv_labels', type=str,
+                        default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset/csv/class_labels_indices_183.csv')
+    args = parser.parse_args()
+    return args
+
+if __name__ == '__main__':
+    args = build_argparse()
+    _parse_labels(args.path_to_audioset_folder, args.path_to_csv_labels, data_type=args.data_type)
+    output_name = 'audioset_{}_manifest_183.json'.format(args.data_type)
+    manifest_path = args.path_to_audioset_folder
+    create_manifest(args.path_to_audioset_folder, output_name, manifest_path, file_extension='wav',
+                    data_type=args.data_type, num_classes=183)
+    create_json_file(list_of_labels=labels, path_to_json='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2')
 

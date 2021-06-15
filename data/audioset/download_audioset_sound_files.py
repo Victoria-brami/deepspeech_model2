@@ -19,7 +19,7 @@ def download_audioset_sound_files(path_to_audioset_csv_folder, data_type='eval')
     new_folder = path_to_audioset_csv_folder.split('/')[:-1]
     new_folder.append(data_type)
     sound_folder = '/'.join(new_folder)
-    os.makedirs(sound_folder, exist_ok=True)
+    os.makedirs(os.path.join(sound_folder, 'wav'), exist_ok=True)
 
     for idx in range(len(csv_data)):
 
@@ -29,15 +29,15 @@ def download_audioset_sound_files(path_to_audioset_csv_folder, data_type='eval')
 
         sys.stdout.write('\r  Video {}/{} information: {}  {}  {}'.format(idx, len(csv_data), video_id, start_time, end_time))
         os.system('youtube-dl "{id}" --quiet --extract-audio --audio-format wav '
-                  '--output "{folder}/{outname}"'.format(id='https://youtube.com/watch?v=' + video_id,
+                  '--output "{folder}/wav/{outname}"'.format(id='https://youtube.com/watch?v=' + video_id,
                                                          outname=video_id +'.%(ext)s',
                                                          folder=sound_folder))
-        os.system('ffmpeg -loglevel quiet -i "{folder}/{outname}.wav" '
-                  '-ar "44100" -ss "{start}" -to "{end}" "{folder}/{outname}_out.wav"'.format(outname=video_id,
+        os.system('ffmpeg -loglevel quiet -i "{folder}/wav/{outname}.wav" '
+                  '-ar "44100" -ss "{start}" -to "{end}" "{folder}/wav/{outname}_out.wav"'.format(outname=video_id,
                                                                                        start=start_time,
                                                                                        end=end_time,
                                                                                        folder=sound_folder))
-        os.system('mv "{folder}/{outname}_out.wav" "{folder}/{outname}.wav"'.format(outname=video_id, folder=sound_folder))
+        os.system('mv "{folder}/wav/{outname}_out.wav" "{folder}/wav/{outname}.wav"'.format(outname=video_id, folder=sound_folder))
 
 
 def build_argparse():
