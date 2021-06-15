@@ -74,31 +74,34 @@ def preprocess_audioset(args):
     os.system('cp {} {}'.format(labels_current_path, labels_destination_path))
     print(' 3)  Filtered Labels moved to the right directory ! ')
 
-    for data_type in ['balanced_train', 'unbalanced_train', 'eval']:
+    for data_type in ['eval'] :#'balanced_train', 'unbalanced_train', :
 
         # 2) Re-format csv files
         convert_false_csv_files_to_dataframes(args.path_to_audioset_folder, data_type)
-        print(' 3)  {}: CSV Files rightly converted ! '.format(data_type))
+        print(' 4)  {}: CSV Files rightly converted ! '.format(data_type))
         align_translated_labels_with_csv_files(args.path_to_audioset_folder, data_type, args.num_orig_classes)
-        print(' 4)  {}: CSV Files rightly aligned ! '.format(data_type))
+        print('\n 5)  {}: CSV Files rightly aligned ! '.format(data_type))
 
         # 3) Filter interesting labels
         filter_dataset_on_non_human_labels(args.path_to_audioset_folder, data_type, num_classes=args.num_classes)
-        print(' 5)  {}: CSV Files rightly filtered ! '.format(data_type))
+        print(' 6)  {}: CSV Files rightly filtered ! '.format(data_type))
 
-        """
         # 4) Download audioset sound files
         download_audioset_sound_files(args.path_to_audioset_folder, data_type)
+        print(' 7)  {}: All sound Files downloaded ! '.format(data_type))
 
         # 5) Create labels
         _parse_labels(args.path_to_audioset_folder, args.labels_filename, data_type=data_type)
+        print(' 8)  {}: All labels created ! '.format(data_type))
+
 
         # 6) create manifests
         output_name = 'audioset_{}_manifest_{}.json'.format(data_type, args.num_classes)
         manifest_path = args.path_to_audioset_folder
         create_manifest(args.path_to_audioset_folder, output_name, manifest_path, file_extension='wav',
                         data_type=data_type, num_classes=args.num_classes)
-    """
+        print(' 9)  {}: Json manifests created ! '.format(data_type))
+"""    """
 
 
     # 7) Merge manifests (TO DO !!!)
