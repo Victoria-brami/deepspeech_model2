@@ -6,7 +6,7 @@ import sys
 from pathlib import Path, PosixPath
 
 
-def download_audioset_sound_files(path_to_audioset_folder, data_type='eval'):
+def download_audioset_sound_files(path_to_audioset_folder, data_type, num_classes):
     """
 
     :param path_to_audioset_csv_folder:
@@ -14,7 +14,7 @@ def download_audioset_sound_files(path_to_audioset_folder, data_type='eval'):
     :return:
     """
 
-    csv_data = pd.read_csv(os.path.join(path_to_audioset_folder, 'csv', '{}_segments.csv'.format(data_type)))
+    csv_data = pd.read_csv(os.path.join(path_to_audioset_folder, 'csv', '{}_segments_{}.csv'.format(data_type, num_classes)))
 
     # Create the folder in which we store the sound files
     sound_folder = Path(path_to_audioset_folder) / PosixPath(data_type)

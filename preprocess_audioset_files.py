@@ -87,7 +87,7 @@ def preprocess_audioset(args):
         print(' 6)  {}: CSV Files rightly filtered ! '.format(data_type))
 
         # 4) Download audioset sound files
-        download_audioset_sound_files(args.path_to_audioset_folder, data_type)
+        download_audioset_sound_files(args.path_to_audioset_folder, data_type, args.num_classes)
         print(' 7)  {}: All sound Files downloaded ! '.format(data_type))
 
         # 5) Create labels
