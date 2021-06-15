@@ -91,8 +91,7 @@ def create_manifest(data_path, output_name, manifest_path, file_extension='wav',
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
 # define parsing transcript function
-def _parse_labels(data_path, labels_file,
-                  data_type='eval'): #eval, unbalanced_train of balanced_train_function
+def _parse_labels(path_to_audioset_folder, data_type, num_classes): #eval, unbalanced_train of balanced_train_function
     """
 
     :param data_path: (str) path to the directory where the csv file is stored
@@ -100,11 +99,12 @@ def _parse_labels(data_path, labels_file,
     :param list_of_labels: Corresponding labels (human filtered or not)
     :return: Creates for each waw a txt file containing the encoded label
     """
-    csv_labels = pd.read_csv(data_path, 'csv', labels_file)
+    labels_path = os.path.join(path_to_audioset_folder, 'csv', 'class_labels_indices_{}.csv'.format(num_classes))
+    csv_labels = pd.read_csv(labels_path)
     num_classes = len(csv_labels)
 
-    csv_file = '{}_segments_filtered_{}.csv'.format(data_type, num_classes)
-    csv_path = os.path.join(data_path, 'csv', csv_file)
+    csv_file = '{}_segments_{}.csv'.format(data_type, num_classes)
+    csv_path = os.path.join(path_to_audioset_folder, 'csv', csv_file)
     data_contents_df = pd.read_csv(csv_path)
 
 
@@ -121,12 +121,12 @@ def _parse_labels(data_path, labels_file,
         # Create labels file
         previous_path = PosixPath('{}'.format(data_type))
         # wav_path = row.fname
-        wav_path = os.path.join(data_path, '{}'.format(data_type), 'wav', '{}.wav'.format(row['YTID']))
+        wav_path = os.path.join(path_to_audioset_folder, '{}'.format(data_type), 'wav', '{}.wav'.format(row['YTID']))
         txt_name = PosixPath(row['YTID'] + '.txt')
 
         # create transcript path
-        os.makedirs(data_path / previous_path / PosixPath('txt_{}'.format(num_classes)), exist_ok=True)
-        transcript_path = data_path / previous_path / PosixPath('txt_{}'.format(num_classes)) / txt_name
+        os.makedirs(path_to_audioset_folder / previous_path / PosixPath('txt_{}'.format(num_classes)), exist_ok=True)
+        transcript_path = path_to_audioset_folder / previous_path / PosixPath('txt_{}'.format(num_classes)) / txt_name
 
         with open(transcript_path, 'w') as json_file:
             json.dump(str(labels), json_file)

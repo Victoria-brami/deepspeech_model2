@@ -91,7 +91,7 @@ def preprocess_audioset(args):
         print(' 7)  {}: All sound Files downloaded ! '.format(data_type))
 
         # 5) Create labels
-        _parse_labels(args.path_to_audioset_folder, args.labels_filename, data_type=data_type)
+        _parse_labels(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
         print(' 8)  {}: All labels created ! '.format(data_type))
 
 
