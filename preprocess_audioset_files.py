@@ -61,6 +61,7 @@ def preprocess_audioset(args):
 
     # 1) Download audioset csv files
     download_annotations_files(args.path_to_audioset_folder)
+    print()
     print(' 1)  All annotations downloaded ! ')
     # WORKS
 
