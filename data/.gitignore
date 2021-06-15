@@ -1,2 +1,4 @@
 CommonVoice_dataset/
 Freesound_dataset/
+audioset/audio/
+audioset/csv/
