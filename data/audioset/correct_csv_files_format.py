@@ -101,7 +101,7 @@ def filter_dataset_on_non_human_labels(path_to_audioset_folder, data_type, num_c
     labels = pd.read_csv(path_to_filtered_labels)
     list_of_filtered_labels = list(labels['display_name'])
 
-    filtered_path = path_to_csv_file.replace('_527.csv', '_{}.csv'.format(len(list_of_filtered_labels)))
+    filtered_path = path_to_csv_file.replace('_527.csv', '_{}.csv'.format(num_classes))
 
     new_data = dict(YTID=[], start_seconds=[], end_seconds=[],
                     positive_labels=[], translated_positive_labels=[])

@@ -82,7 +82,7 @@ def preprocess_audioset(args):
         print(' 4)  {}: CSV Files rightly aligned ! '.format(data_type))
 
         # 3) Filter interesting labels
-        filter_dataset_on_non_human_labels(args.path_to_audioset_folder, args.path_to_filtered_labels, data_type, num_classes=args.num_classes)
+        filter_dataset_on_non_human_labels(args.path_to_audioset_folder, data_type, num_classes=args.num_classes)
         print(' 5)  {}: CSV Files rightly filtered ! '.format(data_type))
 
         """
