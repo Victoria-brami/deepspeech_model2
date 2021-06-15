@@ -91,7 +91,7 @@ def create_manifest(data_path, output_name, manifest_path, file_extension='wav',
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
 # define parsing transcript function
-def _parse_labels(data_path, path_to_csv_labels,
+def _parse_labels(data_path, labels_file,
                   data_type='eval'): #eval, unbalanced_train of balanced_train_function
     """
 
@@ -100,7 +100,7 @@ def _parse_labels(data_path, path_to_csv_labels,
     :param list_of_labels: Corresponding labels (human filtered or not)
     :return: Creates for each waw a txt file containing the encoded label
     """
-    csv_labels = pd.read_csv(path_to_csv_labels)
+    csv_labels = pd.read_csv(data_path, 'csv', labels_file)
     num_classes = len(csv_labels)
 
     csv_file = '{}_segments_filtered_{}.csv'.format(data_type, num_classes)

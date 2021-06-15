@@ -15,8 +15,8 @@ def preprocess_csv_files_3(path_to_csv):
     f2 = open(path_to_csv, 'w')
     f2.write(transcript2)
 
-def translate_labels(csv_data_file, labels_encoding, path_to_csv_file):
 
+def translate_labels(csv_data_file, labels_encoding, path_to_csv_file):
     new_translated_column = []
 
     print('\n Before Translation \n', csv_data_file.head())
@@ -37,50 +37,46 @@ def translate_labels(csv_data_file, labels_encoding, path_to_csv_file):
 
     return None
 
-def convert_false_csv_files_to_dataframes(path_to_folder, data_type):
+
+def convert_false_csv_files_to_dataframes(path_to_folder, data_type, num_classes=527):
     new_data = dict(YTID=[], start_seconds=[], end_seconds=[], positive_labels=[])
 
-    path_to_csv = os.path.join(path_to_folder, 'csv', '{}_segments.csv').format(data_type)
+    path_to_csv = os.path.join(path_to_folder, 'csv', '{}_segments_{}.csv').format(data_type, num_classes)
 
     file1 = open(path_to_csv, 'r')
     all_lines = file1.readlines()
     for line in all_lines[3:]:
         list_of_items = line.split(' ')
-        print(list_of_items)
-        print(str(list_of_items[0][:-1]))
         new_data['YTID'].append(str(list_of_items[0][:-1]))
-        print(list_of_items[1][:-1])
         new_data['start_seconds'].append(float(list_of_items[1][:-1]))
-        print(list_of_items[2][:-1])
         new_data['end_seconds'].append(float(list_of_items[2][:-1]))
-        print(str(list_of_items[3][1:-2]))
         new_data['positive_labels'].append(str(list_of_items[3][1:-2]))
-        print()
 
     new_data = pd.DataFrame(new_data)
     new_data.to_csv(path_to_csv, index=False)
 
     return None
 
-def correct_labels_format(path_to_labels):
+
+def correct_labels_format(path_to_audioset_folder):
     # Ensure labels file in the right format
+    path_to_labels = os.path.join(path_to_audioset_folder, 'csv', 'class_labels_indices_527.csv')
     labels = pd.read_csv(path_to_labels)
     for i in range(len(labels)):
         lab = labels['display_name'][i]
         new_lab = lab.replace(', ', '_and_')
         new_new_lab = new_lab.replace(' ', '_')
-        print(lab, '       ', new_lab, '       ', new_new_lab)
         labels['display_name'][i] = new_new_lab
-    print(labels.head())
     labels.to_csv(path_to_labels, index=False)
 
 
-def align_translated_labels_with_csv_files(path_to_labels, path_to_csv_files):
-
+def align_translated_labels_with_csv_files(path_to_audioset_folder, data_type, num_classes=527):
+    path_to_csv_files = os.path.join(path_to_audioset_folder, 'csv',
+                                     '{}_segments_{}.csv'.format(data_type, num_classes))
+    path_to_labels = os.path.join(path_to_audioset_folder, 'csv', 'class_labels_indices_{}.csv'.format(num_classes))
     data = pd.read_csv(path_to_csv_files)
     labels = pd.read_csv(path_to_labels)
     translated_list_of_labels = []
-
 
     for i in range(len(data)):
         sys.stdout.write('\r  treating all labels .... [{} / {}]'.format(i, len(data)))
@@ -95,17 +91,17 @@ def align_translated_labels_with_csv_files(path_to_labels, path_to_csv_files):
     data['translated_positive_labels'] = translated_list_of_labels
     data.to_csv(path_to_csv_files, index=False)
 
-def filter_dataset_on_non_human_labels(path_to_folder, path_to_filtered_labels, data_type):
 
-    path_to_csv_file = os.path.join(path_to_folder, 'csv', '{}_segments.csv').format(data_type)
+def filter_dataset_on_non_human_labels(path_to_audioset_folder, data_type, num_classes):
+    path_to_csv_file = os.path.join(path_to_audioset_folder, 'csv', '{}_segments_527.csv').format(data_type)
     data = pd.read_csv(path_to_csv_file)
 
+    path_to_filtered_labels = os.path.join(path_to_audioset_folder, 'csv',
+                                           'class_labels_indices_{}.csv'.format(num_classes))
     labels = pd.read_csv(path_to_filtered_labels)
     list_of_filtered_labels = list(labels['display_name'])
 
-    print(list_of_filtered_labels)
-
-    filtered_path = path_to_csv_file.replace('.csv', '_filtered_{}.csv'.format(len(list_of_filtered_labels)))
+    filtered_path = path_to_csv_file.replace('_527.csv', '_{}.csv'.format(len(list_of_filtered_labels)))
 
     new_data = dict(YTID=[], start_seconds=[], end_seconds=[],
                     positive_labels=[], translated_positive_labels=[])
@@ -128,8 +124,6 @@ def filter_dataset_on_non_human_labels(path_to_folder, path_to_filtered_labels, 
     new_data.to_csv(filtered_path, index=False)
 
 
-
-
 def build_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_to_labels',
@@ -141,14 +135,13 @@ def build_argparse():
     args = parser.parse_args()
     return args
 
+
 if __name__ == '__main__':
     args = build_argparse()
 
     # convert_false_csv_files_to_dataframes(args.path_to_csv_file)
     # align_translated_labels_with_csv_files(args.path_to_labels, args.path_to_csv_file)
     filter_dataset_on_non_human_labels(args.path_to_csv_file, args.path_to_filtered_labels)
-
-
 
     """
     convert_false_csv_files_to_dataframes(args.path_to_csv_file)
