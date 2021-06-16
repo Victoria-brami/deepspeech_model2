@@ -8,6 +8,7 @@ from tqdm.notebook import tqdm
 from urllib.request import urlopen
 from zipfile import ZipFile
 import requests
+import wget
 
 LIST_OF_LABELS = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_guitar', 'Bark', 'Bass_drum',
                   'Bass_guitar',
@@ -101,41 +102,36 @@ def download_freesound_dataset(path_to_freesound_folder):
     for data_type in FREESOUND_WAV_URLS.keys():
         sys.stdout.write('\r Downloading and extracting Freesound {} set sound files ... '.format(data_type))
 
-        zip_file_name, zip_url = list(FREESOUND_WAV_URLS[data_type].items())[0]
-
         # 1. Unzip sound folders
-        if data_type != 'noisy':
-            """
-            zipresp = urlopen(zip_url)
-            tempzip = open("/tmp/tempfile.zip", "wb")
+        if data_type != 'train_noisy':
+            zip_file_name, zip_url = list(FREESOUND_WAV_URLS[data_type].items())[0]
 
-            # Write the contents of the downloaded file into the new file
-            tempzip.write(zipresp.read())
+            target_unpacked_dir = os.path.join(path_to_freesound_folder, 'FSDKaggle2019.audio_{}.zip'.format(data_type))
 
-            # Close the newly-created file
-            tempzip.close()
+            if os.path.exists(target_unpacked_dir):
+                print('Find existing folder {}'.format(target_unpacked_dir))
 
-            # Re-open the newly-created file with ZipFile()
-            zf = ZipFile("/tmp/tempfile.zip")
+            else:
+                print("\n Could not find Freesound {}, Downloading corpus...".format(data_type))
 
-            # note that extractall will automatically create the path
-            zf.extractall(path=path_to_freesound_folder)
+                filename = wget.download(zip_url, path_to_freesound_folder)
+                print("FILENAME", filename)
+                name_file = 'FSDKaggle2019.audio_{}.zip'.format(data_type)
+                target_file = ZipFile(os.path.join(path_to_freesound_folder, name_file))
 
-            # close the ZipFile instance
-            zf.close()
-            """
-            audio_file_url = requests.get(zip_url)
-            audio_file_url_content = audio_file_url.content
-            res_file = open(os.path.join(path_to_freesound_folder, zip_file_name), 'wb')
-            res_file.write(audio_file_url_content)
-            res_file.close()
-            os.system('unzip {} -d {}'.format(os.path.join(path_to_freesound_folder, zip_file_name),
-                                              path_to_freesound_folder))
-            os.system('rm {}'.format(os.path.join(path_to_freesound_folder, zip_file_name)))
+                os.makedirs(os.path.join(path_to_freesound_folder, 'FSDKaggle2019.audio_{}'.format(data_type)), exist_ok=True)
+                print("Unpacking corpus to {} ...".format(os.path.join(path_to_freesound_folder, 'FSDKaggle2019.audio_{}'.format(data_type))))
+                # tar = tarfile.open(target_file)
+                target_file.extractall(os.path.join(path_to_freesound_folder, 'FSDKaggle2019.audio_{}'.format(data_type)))
+                target_file.close()
+                os.system('rm {}'.format(target_unpacked_dir))
 
         else:
             # Merge in a zipped folder
             os.makedirs(os.path.join(path_to_freesound_folder, 'FSDKaggle2019.audio_train_noisy'), exist_ok=True)
+
+            zip_url = FREESOUND_WAV_URLS[data_type]
+
             for zip_file_name, zip_file_url in zip_url.items():
                 audio_file_url = requests.get(zip_file_url)
                 audio_file_url_content = audio_file_url.content
@@ -255,15 +251,22 @@ def BUILD_ARGPARSE():
     parser.add_argument("--num_classes", '-nb',
                         default=183,
                         help="Number of classes indices")
+    parser.add_argument("--download", "-d", default=False)
     args = parser.parse_args()
     return args
 
 
 def preprocess_freesound_files(args):
-    download_freesound_dataset(args.path_to_freesound_folder)
-    print(' 1)  All annotations and sound files downloaded ! ')
 
-    idx = 2
+    if args.download:
+        download_freesound_dataset(args.path_to_freesound_folder)
+        os.makedirs(os.path.join(args.path_to_freesound_folder, 'csv'), exist_ok=True)
+        os.system('mv {} {}'.format(os.path.join(args.path_to_freesound_folder, 'FSDKaggle2019.meta/*'), os.path.join(args.path_to_freesound_folder, 'csv')))
+        print(' 1)  All annotations and sound files downloaded ! ')
+        idx = 2
+    else:
+        idx = 1
+
 
     for data_type in ['train_curated', 'train_noisy', 'test']:
         filter_freesound_on_human_labels(args.path_to_freesound_folder, set(freesound_human_labels), data_type)
