@@ -38,6 +38,35 @@ def download_audioset_sound_files(path_to_audioset_folder, data_type, num_classe
                                                                                                   folder=sound_folder))
         os.system('mv "{folder}/wav/{outname}_out.wav" "{folder}/wav/{outname}.wav"'.format(outname=video_id,
                                                                                             folder=sound_folder))
+        # os.system('gzip "{folder}/wav/{outname}.wav"'.format(outname=video_id, folder=sound_folder))
+
+def download_audioset_sound_files_2(path_to_audioset_folder, data_type, num_classes):
+    """
+
+    :param path_to_audioset_csv_folder:
+    :param data_type:
+    :return:
+    """
+
+    csv_data = pd.read_csv(os.path.join(path_to_audioset_folder, 'csv', '{}_segments_{}.csv'.format(data_type, num_classes)))
+
+    # Create the folder in which we store the sound files
+    sound_folder = Path(path_to_audioset_folder) / PosixPath(data_type)
+    os.makedirs(os.path.join(sound_folder, 'wav'), exist_ok=True)
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }],
+        'outtmpl': '%(title)s.%(etx)s',
+        'quiet': False
+    }
+    import youtube_dl
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download(['https://youtube.com/watch?v=-JUBdOr8Hes'])  # Download into the current working directory
 
 
 def build_argparse():
@@ -45,11 +74,11 @@ def build_argparse():
     parser.add_argument('--data_type',
                         default='eval')
     parser.add_argument('--path_to_audioset_folder',
-                        default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset/csv')
+                        default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset')
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
     args = build_argparse()
-    download_audioset_sound_files(args.path_to_audioset_folder, args.data_type)
+    download_audioset_sound_files(args.path_to_audioset_folder, args.data_type, num_classes=183)
