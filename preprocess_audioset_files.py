@@ -74,7 +74,7 @@ def preprocess_audioset(args):
     os.system('cp {} {}'.format(labels_current_path, labels_destination_path))
     print(' 3)  Filtered Labels moved to the right directory ! ')
 
-    for data_type in ['eval'] :#'balanced_train', 'unbalanced_train', :
+    for data_type in ['balanced_train', 'unbalanced_train', 'eval'] :#'balanced_train', 'unbalanced_train', :
 
         # 2) Re-format csv files
         convert_false_csv_files_to_dataframes(args.path_to_audioset_folder, data_type)
@@ -87,15 +87,15 @@ def preprocess_audioset(args):
         print(' 6)  {}: CSV Files rightly filtered ! '.format(data_type))
 
         # 4) Download audioset sound files
-        download_audioset_sound_files(args.path_to_audioset_folder, data_type, args.num_classes)
+        # download_audioset_sound_files(args.path_to_audioset_folder, data_type, args.num_classes)
         print(' 7)  {}: All sound Files downloaded ! '.format(data_type))
 
         # 5) Create labels
-        _parse_labels(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
+        # _parse_labels(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
         print(' 8)  {}: All labels created ! '.format(data_type))
 
         # 6) create manifests
-        create_manifest(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
+       #  create_manifest(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
         print(' 9)  {}: Json manifests created ! '.format(data_type))
 """    """
 
@@ -104,4 +104,6 @@ def preprocess_audioset(args):
 
 if __name__ == '__main__':
     args = build_arguments()
+
+    args.path_to_audioset_folder = '/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset'
     preprocess_audioset(args)
