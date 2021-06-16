@@ -94,12 +94,8 @@ def preprocess_audioset(args):
         _parse_labels(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
         print(' 8)  {}: All labels created ! '.format(data_type))
 
-
         # 6) create manifests
-        output_name = 'audioset_{}_manifest_{}.json'.format(data_type, args.num_classes)
-        manifest_path = args.path_to_audioset_folder
-        create_manifest(args.path_to_audioset_folder, output_name, manifest_path, file_extension='wav',
-                        data_type=data_type, num_classes=args.num_classes)
+        create_manifest(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
         print(' 9)  {}: Json manifests created ! '.format(data_type))
 """    """
 

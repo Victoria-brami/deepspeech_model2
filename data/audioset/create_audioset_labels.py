@@ -43,7 +43,7 @@ def create_json_file(list_of_labels, path_to_json='/home/coml/Documents/Victoria
 
 # Define manifest creation function
 
-def create_manifest(data_path, output_name, manifest_path, file_extension='wav', data_type='eval', num_classes=183):
+def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
     """
 
     :param data_path: (str) path to the folder where all the wav files are
@@ -52,8 +52,10 @@ def create_manifest(data_path, output_name, manifest_path, file_extension='wav',
     :param file_extension: (str) wav file per default
     :return:
     """
-    data_path = os.path.abspath(Path(data_path) / PosixPath(data_type))
-    file_paths = list(Path(data_path / PosixPath('wav')).rglob(f"*.{file_extension}"))
+    output_name = 'audioset_{}_manifest_{}.json'.format(data_type, num_classes)
+    data_path = os.path.abspath(Path(path_to_audioset_folder) / PosixPath(data_type))
+    manifest_path = path_to_audioset_folder
+    file_paths = list(Path(data_path / PosixPath('wav')).rglob(f"*.wav"))
 
     output_path = Path(manifest_path) / output_name
     output_path.parent.mkdir(exist_ok=True, parents=True)
