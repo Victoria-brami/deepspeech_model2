@@ -266,6 +266,9 @@ def preprocess_freesound_files(args):
         idx = 2
     else:
         idx = 1
+        os.makedirs(os.path.join(args.path_to_freesound_folder, 'csv'), exist_ok=True)
+        os.system('mv {} {}'.format(os.path.join(args.path_to_freesound_folder, 'FSDKaggle2019.meta/*'), os.path.join(args.path_to_freesound_folder, 'csv')))
+        print(' 1)  All annotations and sound files downloaded ! ')
 
 
     for data_type in ['train_curated', 'train_noisy', 'test']:
