@@ -15,7 +15,7 @@ LIST_OF_LABELS = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_g
                   'Bathtub_(filling_or_washing)', 'Bicycle_bell',
                   'Bus', 'Buzz', 'Car_passing_by', 'Chink_and_clink', 'Chirp_and_tweet', 'Church_bell',
                   'Computer_keyboard', 'Crackle', 'Cricket', 'Cupboard_open_or_close', 'Cutlery_and_silverware',
-                  'Dishes_and_pots_and_and_pans', 'Drawer_open_or_close', 'Drip', 'Electric_guitar',
+                  'Dishes_and_pots_and_pans', 'Drawer_open_or_close', 'Drip', 'Electric_guitar',
                   'Fill_(with_liquid)',
                   'Finger_snapping', 'Frying_(food)', 'Glockenspiel', 'Gong', 'Harmonica', 'Hi-hat', 'Hiss',
                   'Keys_jangling',
