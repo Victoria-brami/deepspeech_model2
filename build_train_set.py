@@ -97,7 +97,18 @@ def merge_audioset_manifests(path_to_data_folder, data_type, num_classes):
 
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
+def dataset_builder(args):
+    merge_audioset_manifests(args.path_to_data_folder, 'train', args.num_classes)
+    merge_audioset_manifests(args.path_to_data_folder, 'validation', args.num_classes)
+    merge_audioset_manifests(args.path_to_data_folder, 'test', args.num_classes)
 
+def build_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_classes', '-nb', default=183)
+    parser.add_argument('--path_to_data_folder', '-d', default=None)
+    args = parser.parse_args()
+    return args
 
 if __name__ == '__main__':
-    print()
+    args = build_arguments()
+    dataset_builder()
