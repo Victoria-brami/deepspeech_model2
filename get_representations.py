@@ -7,7 +7,7 @@ from deepspeech_pytorch.configs.representations_config import DeepSpeechConfig, 
     UniDirectionalConfig, GCSCheckpointConfig
 
 import os
-os.system('export PYTHONPATH=${PYTHONPATH}:$"/scratch2/vbrami/deepspeech_model"')
+os.system('export PYTHONPATH=${PYTHONPATH}:$"/scratch2/vbrami/deepspeech_model2"')
 
 from deepspeech_pytorch.extract_representations import representations_extractor
 
@@ -23,9 +23,9 @@ cs.store(group="model", name="unidirectional", node=UniDirectionalConfig)
 
 @hydra.main(config_name="config")
 def hydra_main(cfg):
-    representations_extractor(cfg=cfg, layer='conv1', device=torch.device('cuda'))
-    representations_extractor(cfg=cfg, layer='conv2', device=torch.device('cuda'))
-    representations_extractor(cfg=cfg, layer='rnn1', device=torch.device('cuda'))
+    representations_extractor(cfg=cfg, layer='conv1', device='cuda')
+    representations_extractor(cfg=cfg, layer='conv2', device='cuda')
+    representations_extractor(cfg=cfg, layer='rnn1', device='cuda')
 
 
 

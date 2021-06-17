@@ -162,7 +162,7 @@ class Lookahead(nn.Module):
                + ', context=' + str(self.context) + ')'
 
 
-class DeepSpeech(nn.Module):
+class DeepSpeech(pl.LightningModule):
     def __init__(self,
                  labels: List,
                  model_cfg: Union[UniDirectionalConfig, BiDirectionalConfig],

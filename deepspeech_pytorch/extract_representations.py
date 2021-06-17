@@ -36,7 +36,7 @@ def representations_extractor(layer: str,
                               # dataset_name: str,
                               # destination_path: str,
                               # checkpoint: str,
-                              DEVICE: str,
+                              device: str,
                               cfg: DeepSpeechConfig):
     seed_everything(cfg.seed)
 
@@ -104,7 +104,7 @@ def representations_extractor(layer: str,
         with autocast(enabled=True):
             inputs, targets, input_percentages, target_sizes = batch
             input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
-            device = torch.cuda.device(DEVICE)
+            device = torch.cuda.device(device)
             inputs = inputs.to(device)
             out, output_sizes = model.intermediate_forward(inputs, input_sizes, layer)
 
