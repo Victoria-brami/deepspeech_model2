@@ -8,7 +8,7 @@ from pytorch_lightning import seed_everything
 from omegaconf import OmegaConf
 
 from deepspeech_pytorch.model_for_extraction import DeepSpeech
-from deepspeech_pytorch.configs.train_config import DeepSpeechConfig, GCSCheckpointConfig, DataConfig
+from deepspeech_pytorch.configs.representations_config import DeepSpeechConfig, GCSCheckpointConfig, DataConfig
 from deepspeech_pytorch.checkpoint import GCSCheckpointHandler, FileCheckpointHandler
 from deepspeech_pytorch.loader.data_loader import SpectrogramDataset, AudioDataLoader, \
     DSElasticDistributedSampler, DSRandomSampler
@@ -104,7 +104,7 @@ def representations_extractor(layer: str,
         with autocast(enabled=True):
             inputs, targets, input_percentages, target_sizes = batch
             input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
-            device = torch.cuda.device(device)
+            # device = torch.cuda.device(device)
             inputs = inputs.to(device)
             out, output_sizes = model.intermediate_forward(inputs, input_sizes, layer)
 

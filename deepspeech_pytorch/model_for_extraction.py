@@ -12,7 +12,7 @@ from omegaconf import OmegaConf
 from torch.cuda.amp import autocast
 from torch.nn import CTCLoss
 
-from deepspeech_pytorch.configs.train_config import SpectConfig, BiDirectionalConfig, OptimConfig, AdamConfig, \
+from deepspeech_pytorch.configs.representations_config import SpectConfig, BiDirectionalConfig, OptimConfig, AdamConfig, \
     SGDConfig, UniDirectionalConfig
 from deepspeech_pytorch.decoder import GreedyDecoder
 from deepspeech_pytorch.validation import CharErrorRate, WordErrorRate
@@ -178,7 +178,8 @@ class DeepSpeech(pl.LightningModule):
         self.spect_cfg = spect_cfg
         self.bidirectional = True if OmegaConf.get_type(model_cfg) is BiDirectionalConfig else False
 
-        print('OMEGA CONF \n', model_cfg)
+        print('\n Bidirectional or Not \n', self.bidirectional)
+        print('\n  OMEGA CONF \n', model_cfg)
         self.labels = labels
         num_classes = len(self.labels)
 
@@ -217,8 +218,7 @@ class DeepSpeech(pl.LightningModule):
         self.lookahead = nn.Sequential(
             # consider adding batch norm?
             Lookahead(self.model_cfg.hidden_size, context=self.model_cfg.lookahead_context),
-            nn.Hardtanh(0, 20, inplace=True)
-        ) if not self.bidirectional else None
+            nn.Hardtanh(0, 20, inplace=True)) if not self.bidirectional else None
 
         fully_connected = nn.Sequential(
             nn.BatchNorm1d(self.model_cfg.hidden_size),
