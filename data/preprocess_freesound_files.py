@@ -206,14 +206,15 @@ def create_freesound_manifest(path_to_freesound_folder, data_type, num_classes):
     :return:
     """
 
+    old_data_path = Path(path_to_freesound_folder) / PosixPath('FSDKaggle2019.audio_{}'.format(data_type)) / PosixPath('FSDKaggle2019.audio_{}'.format(data_type))
+
     manifest_path = path_to_freesound_folder
     output_name = 'freesound_{}_manifest_{}.json'.format(data_type, num_classes)
     data_path = os.path.abspath(Path(path_to_freesound_folder) / PosixPath(data_type))
-    file_paths = list(Path(data_path / PosixPath('wav')).rglob(f"*.wav"))
+    file_paths = list(Path(data_path / PosixPath('txt_{}'.format(num_classes))).rglob(f"*.txt"))
 
     output_path = Path(manifest_path) / output_name
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    os.makedirs(os.path.join(data_path, 'txt_{}'.format(num_classes)), exist_ok=True)
     os.makedirs(os.path.join(data_path, 'wav'), exist_ok=True)
 
     manifest = {
@@ -221,29 +222,28 @@ def create_freesound_manifest(path_to_freesound_folder, data_type, num_classes):
         'samples': []
     }
 
-    for wav_path in tqdm(file_paths, total=len(file_paths)):
-        wav_path = wav_path.relative_to(data_path)
-        sys.stdout.write(' \r WAV PATH:   {} '.format(wav_path))
+    for txt_path in tqdm(file_paths, total=len(file_paths)):
+        txt_path = txt_path.relative_to(data_path)
+        sys.stdout.write(' \r txt PATH:   {} '.format(txt_path))
 
         # Define path to write in annotations
-        wav_file = str(wav_path).split('/')[0]
-        txt_name = PosixPath(str(wav_file).replace('.wav', '.txt'))
-        transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_name
-        new_wav_path = data_path / PosixPath('wav') / wav_file
+        txt_file = str(txt_path).split('/')[0]
+        wav_name = PosixPath(str(txt_file).replace('.txt', '.wav'))
+        transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_file
+        new_wav_path = data_path / PosixPath('wav') / wav_name
 
         # Write new data in the manifest
         manifest['samples'].append({
             'wav_path': new_wav_path.as_posix(),
             'transcript_path': transcript_path.as_posix()
         })
-        os.system('mv {} {}'.format(data_path / wav_path, data_path / PosixPath('wav')))
+        os.system('mv {} {}'.format(old_data_path / wav_name, data_path / PosixPath('wav')))
 
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
 
 def BUILD_ARGPARSE():
     parser = argparse.ArgumentParser(description='Processes and Downloads Freesound dataset')
-    # parser = add_data_opts(parser)
     parser.add_argument("--path_to_freesound_folder",
                         default='/gpfsscratch/rech/rnt/uuj49ar/freesound',
                         type=str,
@@ -275,11 +275,13 @@ def preprocess_freesound_files(args):
         filter_freesound_on_human_labels(args.path_to_freesound_folder, set(freesound_human_labels), data_type)
         print(' {})  {}: CSV Files rightly filtered ! '.format(idx, data_type))
 
-        create_freesound_manifest(args.path_to_freesound_folder, data_type, args.num_classes)
-        print(' {})  {}: Json manifests created ! '.format(idx + 1, data_type))
-
         _parse_freesound_labels(args.path_to_freesound_folder, LIST_OF_LABELS, data_type, args.num_classes)
-        print(' {})  {}: All labels created ! '.format(idx + 2, data_type))
+        print(' {})  {}: All labels created ! '.format(idx + 1, data_type))
+
+        create_freesound_manifest(args.path_to_freesound_folder, data_type, args.num_classes)
+        print(' {})  {}: Json manifests created ! '.format(idx + 2, data_type))
+
+
 
         idx += 3
 
