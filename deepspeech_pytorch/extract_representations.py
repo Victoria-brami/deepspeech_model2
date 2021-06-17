@@ -1,6 +1,7 @@
 import torch
 import json
 import os
+import numpy as np
 from hydra.utils import to_absolute_path
 from torch.cuda.amp import autocast
 from pytorch_lightning import seed_everything
@@ -22,10 +23,18 @@ def reshape_outputs(outputs, layer):
 
     return None
 
-def save_outputs(outputs, layer, destination_path):
-    return None
+
+def save_outputs(outputs, layer, i, destination_path, dataset_name):
+
+    full_destination_path = os.path.join(destination_path, layer, dataset_name)
+    os.makedirs(full_destination_path, exist_ok=True)
+    save_filename = '{}.npy'.format(i)
+    np.save(os.path.join(full_destination_path, save_filename), outputs)
+
 
 def representations_extractor(layer: str,
+                              dataset_name: str,
+                              destination_path: str,
                               checkpoint: str,
                               DEVICE: str,
                               is_distributed: bool,
@@ -101,19 +110,30 @@ def representations_extractor(layer: str,
             inputs = inputs.to(device)
             out, output_sizes = model.intermediate_forward(inputs, input_sizes, layer)
 
+            if i == 0:
+                print('Layer {} output shape: {}'.format(layer, out.shape))
+
             # Reshape the outputs
-            new_outputs = reshape_outputs(out, layer)
+            # new_outputs = reshape_outputs(out, layer)
 
             # Save the representations
-            save_outputs(out, layer)
+            # save_outputs(out, layer, i, destination_path, dataset_name)
 
     return None
 
 
-def main_deepspeech_extraction(args):
+# def main_deepspeech_extraction(args):
 
 
 
 
 
 if __name__ == '__main__':
+    representations_extractor(layer='conv1',
+                                dataset_name=zerospeech,
+                                destination_path: str,
+                                checkpoint: str,
+                                DEVICE: str,
+                                is_distributed: bool,
+                                data_cfg: DataConfig,
+                                cfg: DeepSpeechConfig):

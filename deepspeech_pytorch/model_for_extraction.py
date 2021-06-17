@@ -270,8 +270,11 @@ class DeepSpeech(nn.Module):
         lengths = lengths.cpu().int()
         output_lengths = self.get_seq_lens(lengths)
 
+        if layer.startswith('input'):
+            return x, output_lengths
+
         if layer.startswith('conv'):
-            return self.conv.intermediate_forward(x, output_lengths), output_lengths
+            return self.conv.intermediate_forward(x, output_lengths, layer), output_lengths
 
         elif layer.startswith('rnn'):
             # Extract rnn index
@@ -293,6 +296,18 @@ class DeepSpeech(nn.Module):
                 x = rnn(x, output_lengths)
             if not self.bidirectional:  # no need for lookahead layer in bidirectional
                 x = self.lookahead(x)
+
+        elif layer.startswith('fully_connected'):
+            x, _ = self.conv(x, output_lengths)
+            sizes = x.size()
+            x = x.view(sizes[0], sizes[1] * sizes[2], sizes[3])  # Collapse feature dimension
+            x = x.transpose(1, 2).transpose(0, 1).contiguous()  # TxNxH
+            for rnn in self.rnns:
+                x = rnn(x, output_lengths)
+            if not self.bidirectional:  # no need for lookahead layer in bidirectional
+                x = self.lookahead(x)
+            x = self.fc(x)
+            x = x.transpose(0, 1)
 
         return x, output_lengths
 
