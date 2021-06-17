@@ -8,7 +8,7 @@ from deepspeech_pytorch.configs.representations_config import DeepSpeechConfig, 
 import os
 os.system('export PYTHONPATH=${PYTHONPATH}:$"/scratch2/vbrami/deepspeech_model"')
 
-from deepspeech_pytorch.training import train
+from deepspeech_pytorch.extract_representations import representations_extractor
 
 cs = ConfigStore.instance()
 cs.store(name="config", node=DeepSpeechConfig)
@@ -22,7 +22,8 @@ cs.store(group="model", name="unidirectional", node=UniDirectionalConfig)
 
 @hydra.main(config_name="config")
 def hydra_main(cfg):
-    train(cfg=cfg)
+    representations_extractor(cfg=cfg)
+
 
 
 if __name__ == '__main__':

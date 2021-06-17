@@ -33,12 +33,10 @@ def save_outputs(outputs, layer, i, destination_path, dataset_name):
 
 
 def representations_extractor(layer: str,
-                              dataset_name: str,
-                              destination_path: str,
+                              # dataset_name: str,
+                              # destination_path: str,
                               checkpoint: str,
                               DEVICE: str,
-                              is_distributed: bool,
-                              data_cfg: DataConfig,
                               cfg: DeepSpeechConfig):
     seed_everything(cfg.seed)
 
@@ -66,13 +64,13 @@ def representations_extractor(layer: str,
     # Define the dataloader
     print('Load the Dataset ...')
     dataset = SpectrogramDataset(
-        audio_conf=data_cfg.spect,
-        input_path=to_absolute_path(data_cfg.train_path),
+        audio_conf=cfg.data.spect,
+        input_path=to_absolute_path(cfg.data.train_path),
         labels=labels,
         normalize=True,
-        aug_cfg=data_cfg.augmentation
+        aug_cfg=cfg.data.augmentation
     )
-
+    is_distributed = False
     if is_distributed:
         sampler = DSElasticDistributedSampler(
             dataset=dataset,
@@ -86,7 +84,7 @@ def representations_extractor(layer: str,
     loader = AudioDataLoader(
         dataset=dataset,
         shuffle=False,
-        num_workers=data_cfg.num_workers,
+        num_workers=cfg.data.num_workers,
         batch_sampler=sampler
     )
 
@@ -98,7 +96,7 @@ def representations_extractor(layer: str,
         precision=cfg.trainer.precision,
         spect_cfg=cfg.data.spect
     )
-    model.load_state_dict(torch.load(checkpoint))
+    # model.load_state_dict(torch.load(checkpoint))
 
     # Compute intermediate representations
     for i, batch in enumerate(loader, 0):
@@ -124,16 +122,3 @@ def representations_extractor(layer: str,
 
 # def main_deepspeech_extraction(args):
 
-
-
-
-
-if __name__ == '__main__':
-    representations_extractor(layer='conv1',
-                                dataset_name=zerospeech,
-                                destination_path: str,
-                                checkpoint: str,
-                                DEVICE: str,
-                                is_distributed: bool,
-                                data_cfg: DataConfig,
-                                cfg: DeepSpeechConfig):
