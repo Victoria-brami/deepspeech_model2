@@ -187,11 +187,14 @@ def _parse_freesound_labels(path_to_freesound_folder, list_of_labels, data_type,
 
         # Create labels file
         previous_path = PosixPath('FSDKaggle2019.audio_{}'.format(data_type))
+        previous_path = PosixPath('{}'.format(data_type))
         wav_path = row.fname
         txt_name = PosixPath(str(wav_path).replace('.wav', '.txt'))
 
         os.makedirs(path_to_freesound_folder / previous_path / PosixPath('txt_{}'.format(num_classes)), exist_ok=True)
         transcript_path = path_to_freesound_folder / previous_path / PosixPath('txt_{}'.format(num_classes)) / txt_name
+
+        print('Transcript path', transcript_path)
 
         with open(transcript_path, 'w') as json_file:
             json.dump(str(labels), json_file)
@@ -206,7 +209,7 @@ def create_freesound_manifest(path_to_freesound_folder, data_type, num_classes):
     :return:
     """
 
-    old_data_path = Path(path_to_freesound_folder) / PosixPath('FSDKaggle2019.audio_{}'.format(data_type)) / PosixPath('FSDKaggle2019.audio_{}'.format(data_type))
+    old_data_path = Path(path_to_freesound_folder) / PosixPath('FSDKaggle2019.audio_{}'.format(data_type)) / PosixPath('wav')
 
     manifest_path = path_to_freesound_folder
     output_name = 'freesound_{}_manifest_{}.json'.format(data_type, num_classes)
@@ -227,7 +230,7 @@ def create_freesound_manifest(path_to_freesound_folder, data_type, num_classes):
         sys.stdout.write(' \r txt PATH:   {} '.format(txt_path))
 
         # Define path to write in annotations
-        txt_file = str(txt_path).split('/')[0]
+        txt_file = str(txt_path).split('/')[-1]
         wav_name = PosixPath(str(txt_file).replace('.txt', '.wav'))
         transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_file
         new_wav_path = data_path / PosixPath('wav') / wav_name
@@ -237,7 +240,8 @@ def create_freesound_manifest(path_to_freesound_folder, data_type, num_classes):
             'wav_path': new_wav_path.as_posix(),
             'transcript_path': transcript_path.as_posix()
         })
-        os.system('mv {} {}'.format(old_data_path / wav_name, data_path / PosixPath('wav')))
+        os.system('mv {} {}'.format(old_data_path / wav_name, data_path / PosixPath('wav') / wav_name))
+        print('mv {} {}'.format(old_data_path / wav_name, data_path / PosixPath('wav')))
 
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 

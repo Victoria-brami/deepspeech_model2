@@ -15,6 +15,8 @@ def build_arguments():
     parser.add_argument('--download_from_web', '-wb', default=False)
     parser.add_argument('--num_orig_classes', '-nbo', default=527)
     parser.add_argument('--num_classes', '-nb', default=183)
+    parser.add_argument('--data_types', nargs='+', default=['balanced_train', 'unbalanced_train', 'eval'])
+
     args = parser.parse_args()
     return args
 
@@ -116,23 +118,23 @@ def preprocess_audioset(args):
     if args.download_from_jeanzay:
         download_labels_from_jeanzay('/gpfsdswork/dataset/AudioSet', args.path_to_audioset_folder)
 
-    for data_type in ['balanced_train', 'unbalanced_train', 'eval']:  # 'balanced_train', 'unbalanced_train', :
+    for data_type in args.data_types:  # 'balanced_train', 'unbalanced_train', :
 
         if args.download_from_jeanzay:  # Audioset paths stored in DSDIR on JEANZAY
             index += 1
-            download_annotations_files_from_jeanzay('/gpfsdswork/dataset/AudioSet', args.path_to_audioset_folder,
-                                                    data_type)
+            # download_annotations_files_from_jeanzay('/gpfsdswork/dataset/AudioSet', args.path_to_audioset_folder,
+            #                                         data_type)
             print(' {})  {}: CSV  annotation Files downloaded ! '.format(index, data_type))
 
 
         # 2) Re-format csv files
-        convert_false_csv_files_to_dataframes(args.path_to_audioset_folder, data_type)
+        # convert_false_csv_files_to_dataframes(args.path_to_audioset_folder, data_type)
         print(' {})  {}: CSV Files rightly converted ! '.format(index + 1, data_type))
-        align_translated_labels_with_csv_files(args.path_to_audioset_folder, data_type, args.num_orig_classes)
+        # align_translated_labels_with_csv_files(args.path_to_audioset_folder, data_type, args.num_orig_classes)
         print('\n {})  {}: CSV Files rightly aligned ! '.format(index + 2, data_type))
 
         # 3) Filter interesting labels
-        filter_dataset_on_non_human_labels(args.path_to_audioset_folder, data_type, num_classes=args.num_classes)
+        # filter_dataset_on_non_human_labels(args.path_to_audioset_folder, data_type, num_classes=args.num_classes)
         print(' {})  {}: CSV Files rightly filtered ! '.format(index + 3, data_type))
 
         # 5) Create labels

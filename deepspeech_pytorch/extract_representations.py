@@ -1,5 +1,6 @@
 import torch
 import json
+import os
 from hydra.utils import to_absolute_path
 from torch.cuda.amp import autocast
 from pytorch_lightning import seed_everything
@@ -13,6 +14,16 @@ from deepspeech_pytorch.loader.data_loader import SpectrogramDataset, AudioDataL
 
 
 
+def reshape_outputs(outputs, layer):
+    # image output of size [1, nb_channels, H, W]
+    nb_channels = outputs.shape[1]
+    W = outputs.shape[3]
+    H = outputs.shape[2]
+
+    return None
+
+def save_outputs(outputs, layer, destination_path):
+    return None
 
 def representations_extractor(layer: str,
                               checkpoint: str,
@@ -90,14 +101,19 @@ def representations_extractor(layer: str,
             inputs = inputs.to(device)
             out, output_sizes = model.intermediate_forward(inputs, input_sizes, layer)
 
+            # Reshape the outputs
+            new_outputs = reshape_outputs(out, layer)
+
             # Save the representations
-
-
-
-
+            save_outputs(out, layer)
 
     return None
 
 
+def main_deepspeech_extraction(args):
+
+
+
+
+
 if __name__ == '__main__':
-    print()

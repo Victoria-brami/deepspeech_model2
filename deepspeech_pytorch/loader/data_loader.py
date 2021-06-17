@@ -169,11 +169,11 @@ class SpectrogramDataset(Dataset, SpectrogramParser):
         transcript = self.parse_transcript(transcript_path)
         return spect, transcript
 
-    def _parse_input(self, input_path):
+    def _parse_input(self, input_path, num_classes=183):
         ids = []
         if os.path.isdir(input_path):
             for wav_path in Path(input_path).rglob('*.wav'):
-                transcript_path = str(wav_path).replace('/wav/', '/non_filtered_txt/').replace('.wav', '.txt')
+                transcript_path = str(wav_path).replace('/wav/', '/txt_{}/'.format(num_classes)).replace('.wav', '.txt')
                 # transcript_path = str(wav_path).replace('/wav/', '/txt/').replace('.wav', '.txt')
                 ids.append((wav_path, transcript_path))
         else:

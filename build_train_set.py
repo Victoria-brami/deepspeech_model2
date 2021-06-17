@@ -95,7 +95,10 @@ def merge_audioset_manifests(path_to_data_folder, data_type, num_classes):
 
     output_path = os.path.join(path_to_data_folder, '{}_manifest_{}.json'.format(data_type, num_classes))
 
-    output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
+    with open(output_path, 'w') as json_manifest_file:
+        json.dump(manifest, json_manifest_file, indent=4)
+
+    # output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
 def dataset_builder(args):
     merge_audioset_manifests(args.path_to_data_folder, 'train', args.num_classes)
@@ -111,4 +114,4 @@ def build_arguments():
 
 if __name__ == '__main__':
     args = build_arguments()
-    dataset_builder()
+    dataset_builder(args)

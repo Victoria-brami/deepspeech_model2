@@ -13,13 +13,16 @@ labels = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_guitar', 
           'Dishes_and_pots_and_pans', 'Drawer_open_or_close', 'Drip', 'Electric_guitar', 'Fill_(with_liquid)',
           'Finger_snapping', 'Frying_(food)', 'Glockenspiel', 'Gong', 'Harmonica', 'Hi-hat', 'Hiss', 'Keys_jangling',
           'Knock', 'Marimba_and_xylophone', 'Mechanical_fan', 'Meow', 'Microwave_oven', 'Motorcycle', 'Printer',
-          'Purr', 'Race_car_and_auto_racing', 'Raindrop', 'Scissors', 'Shatter', 'Sink_(filling_or_washing)', 'Skateboard',
+          'Purr', 'Race_car_and_auto_racing', 'Raindrop', 'Scissors', 'Shatter', 'Sink_(filling_or_washing)',
+          'Skateboard',
           'Slam', 'Squeak', 'Stream', 'Strum', 'Tap', 'Tick-tock', 'Toilet_flush', 'Traffic_noise_and_roadway_noise',
           'Trickle_and_dribble', 'Water_tap_and_faucet', 'Waves_and_surf', 'Writing', 'Zipper_(clothing)', 'Animal',
           'Domestic_animals_and_pets', 'Dog', 'Yip', 'Howl', 'Bow-wow', 'Growling', 'Whimper_(dog)', 'Cat',
           'Caterwaul', 'Livestock_and_farm_animals_and_working_animals', 'Horse', 'Clip-clop', 'Neigh_and_whinny',
-          'Cattle_and_bovinae', 'Moo', 'Cowbell', 'Pig', 'Oink', 'Goat', 'Bleat', 'Sheep', 'Fowl', 'Chicken_and_rooster',
-          'Cluck', 'Crowing_and_cock-a-doodle-doo', 'Turkey', 'Gobble', 'Duck', 'Quack', 'Goose', 'Honk', 'Wild_animals',
+          'Cattle_and_bovinae', 'Moo', 'Cowbell', 'Pig', 'Oink', 'Goat', 'Bleat', 'Sheep', 'Fowl',
+          'Chicken_and_rooster',
+          'Cluck', 'Crowing_and_cock-a-doodle-doo', 'Turkey', 'Gobble', 'Duck', 'Quack', 'Goose', 'Honk',
+          'Wild_animals',
           'Roaring_cats_(lions_and_tigers)', 'Roar', 'Bird', 'Bird_vocalization_and_bird_call_and_bird_song', 'Squawk',
           'Pigeon_and_dove', 'Coo', 'Crow', 'Caw', 'Owl', 'Hoot', 'Bird_flight_and_flapping_wings',
           'Canidae_and_dogs_and_wolves', 'Rodents_and_rats_and_mice', 'Mouse', 'Patter', 'Insect', 'Mosquito',
@@ -31,9 +34,9 @@ labels = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_guitar', 
           'Maraca', 'Tubular_bells', 'Mallet_percussion', 'Vibraphone', 'Steelpan', 'Orchestra', 'Brass_instrument',
           'French_horn', 'Trumpet', 'Trombone', 'Bowed_string_instrument', 'String_section', 'Violin_and_fiddle',
           'Pizzicato', 'Cello', 'Double_bass', 'Wind_instrument_and_woodwind_instrument', 'Flute', 'Saxophone',
-          'Clarinet', 'Harp', 'Bell', 'Jingle_bell', 'Tuning_fork', 'Chime', 'Wind_chime', 'Change_ringing_(campanology)',
+          'Clarinet', 'Harp', 'Bell', 'Jingle_bell', 'Tuning_fork', 'Chime', 'Wind_chime',
+          'Change_ringing_(campanology)',
           'Liquid', 'Splash_and_splatter', 'Slosh', 'Squish', 'Pour', 'Gush', 'Spray', 'Environmental_noise']
-
 
 
 def create_json_file(list_of_labels, path_to_json='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2'):
@@ -41,16 +44,12 @@ def create_json_file(list_of_labels, path_to_json='/home/coml/Documents/Victoria
     with open(os.path.join(path_to_json, 'labels_{}.json'.format(number_of_labels)), 'w') as json_file:
         json.dump(list_of_labels, json_file, indent=4)
 
+
 # Define manifest creation function
 
-def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
+def create_manifest_2(path_to_audioset_folder, data_type='eval', num_classes=183):
     """
 
-    :param data_path: (str) path to the folder where all the wav files are
-    :param output_name: (str) name of the manifest, that will be a json file dataset_manfest_datatype_num_classes.json
-    :param manifest_path: (str) directory in whish the manifest will be stored
-    :param file_extension: (str) wav file per default
-    :return:
     """
     output_name = 'audioset_{}_manifest_{}.json'.format(data_type, num_classes)
     data_path = os.path.abspath(Path(path_to_audioset_folder) / PosixPath(data_type))
@@ -59,11 +58,10 @@ def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
 
     output_path = Path(manifest_path) / output_name
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    os.makedirs(os.path.join(data_path,  'txt_{}'.format(num_classes)), exist_ok=True)
-    os.makedirs(os.path.join(data_path,  'wav'), exist_ok=True)
+    os.makedirs(os.path.join(data_path, 'txt_{}'.format(num_classes)), exist_ok=True)
+    os.makedirs(os.path.join(data_path, 'wav'), exist_ok=True)
 
     print(file_paths)
-
 
     manifest = {
         'root_path': data_path,
@@ -77,7 +75,7 @@ def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
         # Define path to write in annotations
         wav_file = str(wav_path).split('/')[-1]
         txt_name = PosixPath(wav_file.replace('.wav', '.txt'))
-        transcript_path = data_path /  PosixPath('txt_{}'.format(num_classes)) / txt_name
+        transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_name
         new_wav_path = data_path / PosixPath('wav') / wav_file
         print('transcript path', transcript_path)
         print('wav path', new_wav_path)
@@ -92,8 +90,53 @@ def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
 
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
+
+def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
+    """
+
+    :param data_path: (str) path to the folder where all the wav files are
+    :param output_name: (str) name of the manifest, that will be a json file dataset_manfest_datatype_num_classes.json
+    :param manifest_path: (str) directory in whish the manifest will be stored
+    :param file_extension: (str) wav file per default
+    :return:
+    """
+
+    output_name = 'audioset_{}_manifest_{}.json'.format(data_type, num_classes)
+    data_path = os.path.abspath(Path(path_to_audioset_folder) / PosixPath(data_type))
+    manifest_path = path_to_audioset_folder
+    file_paths = list(Path(data_path / PosixPath('txt_{}'.format(num_classes))).rglob(f"*.txt"))
+
+    output_path = Path(manifest_path) / output_name
+    output_path.parent.mkdir(exist_ok=True, parents=True)
+
+    manifest = {
+        'root_path': data_path,
+        'samples': []
+    }
+
+    for txt_path in tqdm(file_paths, total=len(file_paths)):
+        txt_path = txt_path.relative_to(data_path)
+        sys.stdout.write(' \r TXT PATH:   {} '.format(txt_path))
+
+        # Define path to write in annotations
+        txt_file = str(txt_path).split('/')[-1]
+        wav_name = PosixPath(txt_file.replace('.txt', '.wav'))
+
+        transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_file
+        new_wav_path = PosixPath('/gpfsdwork/dataset/AudioSet') / PosixPath(data_type) / PosixPath(str(wav_name)[0]) / wav_name
+        print('transcript path', transcript_path)
+
+        # Write new data in the manifest
+        manifest['samples'].append({
+            'wav_path': new_wav_path.as_posix(),
+            'transcript_path': transcript_path.as_posix()
+        })
+
+    output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
+
+
 # define parsing transcript function
-def _parse_labels(path_to_audioset_folder, data_type, num_classes): #eval, unbalanced_train of balanced_train_function
+def _parse_labels(path_to_audioset_folder, data_type, num_classes):  # eval, unbalanced_train of balanced_train_function
     """
 
     :param data_path: (str) path to the directory where the csv file is stored
@@ -109,8 +152,8 @@ def _parse_labels(path_to_audioset_folder, data_type, num_classes): #eval, unbal
     csv_path = os.path.join(path_to_audioset_folder, 'csv', csv_file)
     data_contents_df = pd.read_csv(csv_path)
 
-
     for index, row in tqdm(data_contents_df.iterrows(), total=data_contents_df.shape[0]):
+        sys.stdout.write('\r  Parsing Labels .... [{} / {}]'.format(index, data_contents_df.shape[0]))
         # Get the labels name
         labels_list = row['translated_positive_labels'].split(',')
         labels = [0] * num_classes
@@ -122,9 +165,7 @@ def _parse_labels(path_to_audioset_folder, data_type, num_classes): #eval, unbal
 
         # Create labels file
         previous_path = PosixPath('{}'.format(data_type))
-        # wav_path = row.fname
-        wav_path = os.path.join(path_to_audioset_folder, '{}'.format(data_type), 'wav', '{}.wav'.format(row['YTID']))
-        txt_name = PosixPath(row['YTID'] + '.txt')
+        txt_name = PosixPath('{}_{:.3f}_{:.3f}.txt'.format(row['YTID'], row['start_seconds'], row['end_seconds']))
 
         # create transcript path
         os.makedirs(path_to_audioset_folder / previous_path / PosixPath('txt_{}'.format(num_classes)), exist_ok=True)
@@ -149,6 +190,7 @@ def build_argparse():
     args = parser.parse_args()
     return args
 
+
 if __name__ == '__main__':
     args = build_argparse()
     _parse_labels(args.path_to_audioset_folder, args.path_to_csv_labels, data_type=args.data_type)
@@ -156,5 +198,5 @@ if __name__ == '__main__':
     manifest_path = args.path_to_audioset_folder
     create_manifest(args.path_to_audioset_folder, output_name, manifest_path, file_extension='wav',
                     data_type=args.data_type, num_classes=183)
-    create_json_file(list_of_labels=labels, path_to_json='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2')
-
+    create_json_file(list_of_labels=labels,
+                     path_to_json='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2')
