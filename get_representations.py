@@ -1,6 +1,7 @@
 import hydra
 from hydra.core.config_store import ConfigStore
 from hydra_configs.pytorch_lightning.callbacks import ModelCheckpointConf
+import torch
 
 from deepspeech_pytorch.configs.representations_config import DeepSpeechConfig, AdamConfig, SGDConfig, BiDirectionalConfig, \
     UniDirectionalConfig, GCSCheckpointConfig
@@ -22,7 +23,9 @@ cs.store(group="model", name="unidirectional", node=UniDirectionalConfig)
 
 @hydra.main(config_name="config")
 def hydra_main(cfg):
-    representations_extractor(cfg=cfg)
+    representations_extractor(cfg=cfg, layer='conv1', device=torch.device('cuda'))
+    representations_extractor(cfg=cfg, layer='conv2', device=torch.device('cuda'))
+    representations_extractor(cfg=cfg, layer='rnn1', device=torch.device('cuda'))
 
 
 

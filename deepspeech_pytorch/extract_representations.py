@@ -35,7 +35,7 @@ def save_outputs(outputs, layer, i, destination_path, dataset_name):
 def representations_extractor(layer: str,
                               # dataset_name: str,
                               # destination_path: str,
-                              checkpoint: str,
+                              # checkpoint: str,
                               DEVICE: str,
                               cfg: DeepSpeechConfig):
     seed_everything(cfg.seed)
