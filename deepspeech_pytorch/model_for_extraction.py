@@ -54,6 +54,11 @@ class MaskConv(nn.Module):
         """
         super(MaskConv, self).__init__()
         self.seq_module = seq_module
+        self.list_seq_module = list(seq_module)
+
+        print('\n   Seq MODULE \n', seq_module)
+
+        print('\n   List Seq MODULE \n', self.list_seq_module)
 
     def forward(self, x, lengths):
         """
@@ -81,9 +86,11 @@ class MaskConv(nn.Module):
         :return: Masked output from the module
         """
         # Extract the layer index: (for conv1: conv2d, BN, Hardth / for conv2: conv2d, BN, Hardth, conv2d, BN, Hardth)
-        conv_layer_idx = layer[-1]
+        conv_layer_idx = int(layer[-1])
 
-        for module in self.seq_module[:3 * conv_layer_idx]:
+        print(' \n COnv layer index', conv_layer_idx)
+
+        for module in self.list_seq_module[:3 * conv_layer_idx]:
             x = module(x)
             mask = torch.BoolTensor(x.size()).fill_(0)
             if x.is_cuda:
