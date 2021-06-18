@@ -56,9 +56,6 @@ class MaskConv(nn.Module):
         self.seq_module = seq_module
         self.list_seq_module = list(seq_module)
 
-        print('\n   Seq MODULE \n', seq_module)
-
-        print('\n   List Seq MODULE \n', self.list_seq_module)
 
     def forward(self, x, lengths):
         """
@@ -87,8 +84,6 @@ class MaskConv(nn.Module):
         """
         # Extract the layer index: (for conv1: conv2d, BN, Hardth / for conv2: conv2d, BN, Hardth, conv2d, BN, Hardth)
         conv_layer_idx = int(layer[-1])
-
-        print(' \n COnv layer index', conv_layer_idx)
 
         for module in self.list_seq_module[:3 * conv_layer_idx]:
             x = module(x)
@@ -281,7 +276,7 @@ class DeepSpeech(pl.LightningModule):
             return x, output_lengths
 
         if layer.startswith('conv'):
-            return self.conv.intermediate_forward(x, output_lengths, layer), output_lengths
+            return self.conv.intermediate_forward(x, output_lengths, layer)[0], output_lengths
 
         elif layer.startswith('rnn'):
             # Extract rnn index

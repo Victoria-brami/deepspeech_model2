@@ -13,15 +13,56 @@ from deepspeech_pytorch.checkpoint import GCSCheckpointHandler, FileCheckpointHa
 from deepspeech_pytorch.loader.data_loader import SpectrogramDataset, AudioDataLoader, \
     DSElasticDistributedSampler, DSRandomSampler
 
-
+"""
+def reconcatenate_image(image_output):
+    
+    # image output of size [1, nb_channels, H, W]
+    nb_channels = image_output.shape[1]
+    W = image_output.shape[3]
+    H = image_output.shape[2]
+    
+    new_image = np.zeros((H, W * nb_channels))
+    
+    for i in range(nb_channels):
+        X = image_output[0, i, :, :].cpu().detach().numpy()
+        first_im = X
+        new_image[:, i*W:(i+1)*W] = first_im
+    
+    return new_image"""
 
 def reshape_outputs(outputs, layer):
-    # image output of size [1, nb_channels, H, W]
-    nb_channels = outputs.shape[1]
-    W = outputs.shape[3]
-    H = outputs.shape[2]
+    # W : time dimension
 
-    return None
+    if layer.startswith('input'):
+        # image output of size [1, nb_channels, H, W]
+        return outputs[0, 0, :, :]
+
+    elif layer.startswith('conv'):
+        # image output of size [1, nb_channels, H, W]
+        nb_channels = outputs.shape[1]
+        W = outputs.shape[3]
+        H = outputs.shape[2]
+        reshaped_output = np.zeros((H * nb_channels, W ))
+        for i in range(nb_channels):
+            X = outputs[0, i, :, :].cpu().detach().numpy()
+            first_im = X
+            reshaped_output[i * H:(i + 1) * H, :] = first_im
+
+    elif layer.startswith('rnn'):
+        # image output of size [W, 1, H]
+        reshaped_output = outputs[:, 0, :].cpu().detach().numpy()
+        reshaped_output = reshaped_output.transpose()
+    elif layer.startswith('lookahead'):
+        # image output of size [W, 1, H]
+        W = outputs.shape[0]
+        H = outputs.shape[2]
+        reshaped_output = outputs[:, 0, :].cpu().detach().numpy()
+        reshaped_output = reshaped_output.transpose()
+    elif layer.startswith('fully_connected'):
+        # image output of size [W, 1, H]
+        reshaped_output = outputs[:, 0, :].cpu().detach().numpy()
+        reshaped_output = reshaped_output.transpose()
+    return reshaped_output
 
 
 def save_outputs(outputs, layer, i, destination_path, dataset_name):
@@ -105,17 +146,19 @@ def representations_extractor(layer: str,
             inputs, targets, input_percentages, target_sizes = batch
             input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
             # device = torch.cuda.device(device)
-            inputs = inputs.to(device)
+            # inputs = inputs.to(device)
             out, output_sizes = model.intermediate_forward(inputs, input_sizes, layer)
 
             if i == 0:
                 print('Layer {} output shape: {}'.format(layer, out.shape))
 
             # Reshape the outputs
-            # new_outputs = reshape_outputs(out, layer)
+            new_outputs = reshape_outputs(out, layer)
 
             # Save the representations
-            # save_outputs(out, layer, i, destination_path, dataset_name)
+            dataset_name = 'freesound_train_curated'
+            destination_path = 'freesound_outputs'
+            save_outputs(out, layer, i, destination_path, dataset_name)
 
     return None
 
