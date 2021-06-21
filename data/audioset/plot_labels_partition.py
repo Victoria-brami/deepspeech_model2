@@ -6,6 +6,7 @@ import argparse
 from tqdm.notebook import tqdm
 import numpy as np
 import json
+import pandas as pd
 
 labels = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_guitar', 'Bark', 'Bass_drum', 'Bass_guitar',
           'Bathtub_(filling_or_washing)', 'Bicycle_bell',
@@ -51,7 +52,7 @@ def find_music_labelled_elements():
     return None
 
 
-def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='train', mode='count'):
+def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='train', mode='count', create_figure=False):
 
     num_classes = len(labels)
     all_labels = np.zeros(num_classes)
@@ -72,21 +73,29 @@ def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='tr
     else:
         all_labels = [str(all_labels[i]) for i in range(len(all_labels))]
         print(all_labels)
+
+    csv_data = dict()
+    for i in range(num_classes):
+        csv_data[labels[i]] = int(all_labels[i])
+    csv_data = pd.DataFrame(csv_data)
+    csv_data.to_csv(data_path, 'number_of_samples_per_label_183.csv', index=False)
+
     # Create partition figure
-    fig = go.Figure()
-    fig.add_trace(go.Histogram(x=labels, y=all_labels, histfunc="sum"))
+    if create_figure:
+        fig = go.Figure()
+        fig.add_trace(go.Histogram(x=labels, y=all_labels, histfunc="sum"))
 
-    fig.update_xaxes(title_text="Labels Names")
+        fig.update_xaxes(title_text="Labels Names")
 
-    if mode == 'percentage':
-        fig.update_yaxes(title_text="Percentage", range=[0, 8])
-    elif mode == 'count':
-        fig.update_yaxes(title_text="Number of samples", range=[0, 100000])
+        if mode == 'percentage':
+            fig.update_yaxes(title_text="Percentage", range=[0, 8])
+        elif mode == 'count':
+            fig.update_yaxes(title_text="Number of samples", range=[0, 100000])
 
-    fig.update_layout(title_text="AudioSet labels partition ({} mode)".format(mode),
-                       title_font_size=30)
-    fig.write_image("graphs/{}_SET_labels_{}_partition_mode_{}.png".format(data_type.upper(), num_classes, mode), width=2000, height=1000)
-    fig.show()
+        fig.update_layout(title_text="AudioSet labels partition ({} mode)".format(mode),
+                           title_font_size=30)
+        fig.write_image("graphs/{}_SET_labels_{}_partition_mode_{}.png".format(data_type.upper(), num_classes, mode), width=2000, height=1000)
+        fig.show()
 
 def plot_all_labels_proportion_partition_bis(data_path, labels=labels, data_type='eval', mode='count'):
 
