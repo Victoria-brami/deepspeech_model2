@@ -5,6 +5,7 @@ from pathlib import Path, PosixPath
 import argparse
 from tqdm.notebook import tqdm
 import numpy as np
+import json
 
 labels = ['Accelerating_and_revving_and_vroom', 'Accordion', 'Acoustic_guitar', 'Bark', 'Bass_drum', 'Bass_guitar',
           'Bathtub_(filling_or_washing)', 'Bicycle_bell',
@@ -46,7 +47,48 @@ def parse_transcript(transcript_path):
             new_transcript.append(int(x))
     return new_transcript
 
-def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='eval', mode='count'):
+def find_music_labelled_elements():
+    return None
+
+
+def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='train', mode='count'):
+
+    num_classes = len(labels)
+    all_labels = np.zeros(num_classes)
+
+    # Load the manifest depending on the type of set
+    data_filename = os.path.join(data_path, '{data}_manifest_{num}.json'.format(data=data_type, num=num_classes))
+    with open(data_filename, 'r') as json_file:
+        json_samples = json.load(json_file)['samples']
+
+    for sample in json_samples:
+        txt_labels = parse_transcript(sample['transcript_path'])
+        all_labels += np.array(txt_labels)
+    print(all_labels)
+
+    if mode == 'percentage':
+        all_labels = all_labels / np.sum(all_labels) * 100
+        print('percentage', all_labels.sum())
+    else:
+        all_labels = [str(all_labels[i]) for i in range(len(all_labels))]
+        print(all_labels)
+    # Create partition figure
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(x=labels, y=all_labels, histfunc="sum"))
+
+    fig.update_xaxes(title_text="Labels Names")
+
+    if mode == 'percentage':
+        fig.update_yaxes(title_text="Percentage", range=[0, 8])
+    elif mode == 'count':
+        fig.update_yaxes(title_text="Number of samples", range=[0, 100000])
+
+    fig.update_layout(title_text="AudioSet labels partition ({} mode)".format(mode),
+                       title_font_size=30)
+    fig.write_image("graphs/{}_SET_labels_{}_partition_mode_{}.png".format(data_type.upper(), num_classes, mode), width=2000, height=1000)
+    fig.show()
+
+def plot_all_labels_proportion_partition_bis(data_path, labels=labels, data_type='eval', mode='count'):
 
     num_classes = len(labels)
     if data_type == 'train':
@@ -82,7 +124,7 @@ def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='ev
 
     fig.update_layout(title_text="AudioSet labels partition ({} mode)".format(mode),
                        title_font_size=30)
-    fig.write_image("graphs/audioset_{}_labels_{}_partition_mode_{}_bis.png".format(data_type, num_classes, mode))
+    fig.write_image("graphs/audioset_{}_labels_{}_partition_mode_{}_bis.png".format(data_type, num_classes, mode), width=2000, height=1000)
     fig.show()
 
 
