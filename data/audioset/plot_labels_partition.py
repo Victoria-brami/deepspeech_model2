@@ -48,7 +48,7 @@ def parse_transcript(transcript_path):
             new_transcript.append(int(x))
     return new_transcript
 
-def find_music_labelled_elements():
+def find_music_labelled_elements(path_to_audioset_folder, data_type):
     return None
 
 
@@ -59,6 +59,7 @@ def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='tr
 
     # Load the manifest depending on the type of set
     data_filename = os.path.join(data_path, '{data}_manifest_{num}.json'.format(data=data_type, num=num_classes))
+    # data_filename = os.path.join(data_path, 'audioset_{data}_manifest_{num}.json'.format(data=data_type, num=num_classes))
     with open(data_filename, 'r') as json_file:
         json_samples = json.load(json_file)['samples']
 
@@ -78,7 +79,8 @@ def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='tr
     for i in range(num_classes):
         csv_data[labels[i]] = int(all_labels[i])
     csv_data = pd.DataFrame(csv_data)
-    csv_data.to_csv(data_path, 'number_of_samples_per_label_183.csv', index=False)
+    os.makedirs(os.path.join(data_path, 'graphs'), exist_ok=True)
+    csv_data.to_csv(data_path, 'graphs', '{}_SET_number_of_samples_per_label_183.csv'.format(data_type))
 
     # Create partition figure
     if create_figure:
@@ -161,9 +163,11 @@ def plot_categorical_labels_proportion_partition(data_path, labels=labels, data_
 
 def build_argparse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path_to_audioset_folder', type=str, default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset')
+    parser.add_argument('--path_to_audioset_folder', type=str,
+                        default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset')
     parser.add_argument('--data_type', type=str,
-                        default='train', choices=['eval', 'unbalanced_train', 'balanced_train', 'train'])
+                        default='train', choices=['eval', 'unbalanced_train', 'balanced_train', 'train', 'validation', 'test'])
+    parser.add_argument('--create_figure', '-cf', default=True)
     args = parser.parse_args()
     return args
 
@@ -172,4 +176,18 @@ def build_argparse():
 if __name__ == '__main__':
     args = build_argparse()
     # plot_all_labels_proportion_partition(args.path_to_audioset_folder, data_type=args.data_type, mode='percentage')
-    plot_all_labels_proportion_partition(args.path_to_audioset_folder, data_type=args.data_type, mode='count')
+    plot_all_labels_proportion_partition(args.path_to_audioset_folder,
+                                         data_type='train',
+                                         mode='count',
+                                         create_figure=True)
+    print('\n  Plotted for TRAIN set')
+    plot_all_labels_proportion_partition(args.path_to_audioset_folder,
+                                         data_type='validation',
+                                         mode='count',
+                                         create_figure=True)
+    print('\n  Plotted for VALIDATION set')
+    plot_all_labels_proportion_partition(args.path_to_audioset_folder,
+                                         data_type='test',
+                                         mode='count',
+                                         create_figure=True)
+    print('\n  Plotted for TEST set')
