@@ -15,7 +15,7 @@ def build_arguments():
     parser.add_argument('--download_from_web', '-wb', default=False)
     parser.add_argument('--num_orig_classes', '-nbo', default=527)
     parser.add_argument('--num_classes', '-nb', default=183)
-    parser.add_argument('--data_types', nargs='+', default=['balanced_train', 'unbalanced_train', 'eval'])
+    parser.add_argument('--data_types', nargs='+', default=['balanced_train', 'eval', 'unbalanced_train'])
 
     args = parser.parse_args()
     return args
