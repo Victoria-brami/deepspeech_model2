@@ -180,17 +180,17 @@ if __name__ == '__main__':
     args = build_argparse()
     # plot_all_labels_proportion_partition(args.path_to_audioset_folder, data_type=args.data_type, mode='percentage')
     plot_all_labels_proportion_partition(args.path_to_audioset_folder,
-                                         data_type='train',
+                                         data_type='small_train',
                                          mode='count',
                                          create_figure=False)
-    print('\n  Plotted for TRAIN set')
+    print('\n  Plotted for SMALL TRAIN set')
     plot_all_labels_proportion_partition(args.path_to_audioset_folder,
-                                         data_type='validation',
+                                         data_type='small_validation',
                                          mode='count',
                                          create_figure=False)
-    print('\n  Plotted for VALIDATION set')
+    print('\n  Plotted for SMALL VALIDATION set')
     plot_all_labels_proportion_partition(args.path_to_audioset_folder,
-                                         data_type='test',
+                                         data_type='small_test',
                                          mode='count',
                                          create_figure=False)
-    print('\n  Plotted for TEST set')
+    print('\n  Plotted for SMALL TEST set')
