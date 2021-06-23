@@ -93,6 +93,61 @@ def merge_audioset_manifests(path_to_data_folder, data_type, num_classes):
         for sample_idx_3 in range(len(freesound_test)):
             manifest['samples'].append(freesound_test[sample_idx_3])
 
+    elif data_type == 'small_train' or data_type == 'small_validation':
+        audioset_balanced_train_file = os.path.join(path_to_data_folder, 'audioset',
+                                                    'audioset_small_balanced_train_manifest_{}.json'.format(num_classes))
+        audioset_unbalanced_train_file = os.path.join(path_to_data_folder, 'audioset',
+                                                      'audioset_small_unbalanced_train_manifest_{}.json'.format(num_classes))
+        freesound_train_curated_file = os.path.join(path_to_data_folder, 'freesound',
+                                                    'freesound_train_curated_manifest_{}.json'.format(num_classes))
+        freesound_train_noisy_file = os.path.join(path_to_data_folder, 'freesound',
+                                                  'freesound_train_noisy_manifest_{}.json'.format(num_classes))
+
+        with open(audioset_balanced_train_file, 'r') as json_file1:
+            audioset_b_train = json.load(json_file1)['samples']
+        with open(audioset_unbalanced_train_file, 'r') as json_file2:
+            audioset_ub_train = json.load(json_file2)['samples']
+        with open(freesound_train_curated_file, 'r') as json_file3:
+            freesound_c_train = json.load(json_file3)['samples']
+        with open(freesound_train_noisy_file, 'r') as json_file4:
+            freesound_n_train = json.load(json_file4)['samples']
+
+        if data_type == 'small_train':
+            for sample_idx_1 in range(int(len(audioset_b_train) * 0.9)):
+                manifest['samples'].append(audioset_b_train[sample_idx_1])
+            for sample_idx_2 in range(int(len(audioset_ub_train) * 0.9)):
+                manifest['samples'].append(audioset_ub_train[sample_idx_2])
+            for sample_idx_3 in range(int(len(freesound_c_train) * 0.9)):
+                manifest['samples'].append(freesound_c_train[sample_idx_3])
+            for sample_idx_4 in range(int(len(freesound_n_train) * 0.9)):
+                manifest['samples'].append(freesound_n_train[sample_idx_4])
+
+        else: # validation
+            for sample_idx_1 in range(int(len(audioset_b_train) * 0.9), len(audioset_b_train)):
+                manifest['samples'].append(audioset_b_train[sample_idx_1])
+            for sample_idx_2 in range(int(len(audioset_ub_train) * 0.9), len(audioset_ub_train)):
+                manifest['samples'].append(audioset_ub_train[sample_idx_2])
+            for sample_idx_3 in range(int(len(freesound_c_train) * 0.9), len(freesound_c_train)):
+                manifest['samples'].append(freesound_c_train[sample_idx_3])
+            for sample_idx_4 in range(int(len(freesound_n_train) * 0.9), len(freesound_n_train)):
+                manifest['samples'].append(freesound_n_train[sample_idx_4])
+
+
+    elif data_type == 'small_test':
+        audioset_eval_file = os.path.join(path_to_data_folder, 'audioset',
+                                                      'audioset_small_eval_manifest_{}.json'.format(num_classes))
+        freesound_test_file = os.path.join(path_to_data_folder, 'freesound',
+                                                    'freesound_test_manifest_{}.json'.format(num_classes))
+        with open(audioset_eval_file, 'r') as json_file2:
+            audioset_eval = json.load(json_file2)['samples']
+        with open(freesound_test_file, 'r') as json_file3:
+            freesound_test = json.load(json_file3)['samples']
+
+        for sample_idx_2 in range(len(audioset_eval)):
+            manifest['samples'].append(audioset_eval[sample_idx_2])
+        for sample_idx_3 in range(len(freesound_test)):
+            manifest['samples'].append(freesound_test[sample_idx_3])
+
     output_path = os.path.join(path_to_data_folder, '{}_manifest_{}.json'.format(data_type, num_classes))
 
     with open(output_path, 'w') as json_manifest_file:
