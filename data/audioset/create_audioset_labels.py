@@ -100,11 +100,6 @@ def create_manifest(path_to_audioset_folder, size=None, data_type='eval', num_cl
     :param file_extension: (str) wav file per default
     :return: A json file containing for each sample the path to the txt file and the path to the wav file
     """
-    manifest = {
-        'root_path': data_path,
-        'samples': []
-    }
-
     if size == 'small':
         output_name = 'audioset_small_{}_manifest_{}.json'.format(data_type, num_classes)
     else:
@@ -117,7 +112,10 @@ def create_manifest(path_to_audioset_folder, size=None, data_type='eval', num_cl
     output_path = Path(manifest_path) / output_name
     output_path.parent.mkdir(exist_ok=True, parents=True)
 
-
+    manifest = {
+        'root_path': data_path,
+        'samples': []
+    }
 
     for txt_path in tqdm(file_paths, total=len(file_paths)):
         txt_path = txt_path.relative_to(data_path)
