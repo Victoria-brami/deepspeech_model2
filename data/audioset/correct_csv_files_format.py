@@ -144,6 +144,7 @@ def filter_dataset_on_non_human_labels(path_to_audioset_folder, data_type, num_c
 
     new_data = dict(YTID=[], start_seconds=[], end_seconds=[],
                     positive_labels=[], translated_positive_labels=[])
+    removed_samples = 0
 
     for i in range(len(data)):
         number_of_found_labels = 0
@@ -161,9 +162,11 @@ def filter_dataset_on_non_human_labels(path_to_audioset_folder, data_type, num_c
 
         else:
             print('      Filtered Sample: {}'.format(list_of_labels))
+            removed_samples += 1
 
     new_data = pd.DataFrame(new_data)
-    print('Filtered path', filtered_path)
+    print('   Filtered path', filtered_path)
+    print('   NUMBER OF SAMPLES REMOVED: ', removed_samples)
     new_data.to_csv(filtered_path, index=False)
 
 
