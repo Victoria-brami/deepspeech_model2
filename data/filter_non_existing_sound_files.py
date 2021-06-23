@@ -36,6 +36,34 @@ def display_non_existing_files(path_to_json_file, display_filename):
             print('      {}: {}'.format(index, non_missing_files[index]))
 
 
+
+def parse_transcript(transcript_path):
+    with open(transcript_path, 'r', encoding='utf8') as transcript_file:
+        transcript = transcript_file.read().replace('\n', '')
+    new_transcript = []
+    for x in transcript:
+        if x not in ['', ' ', ',', ']', '[', '"']:
+            new_transcript.append(int(x))
+    return new_transcript
+
+
+def check_all_labels_contents(path_to_json_file, num_classes=183):
+
+    with open(path_to_json_file, 'r') as json_file:
+        dataset = json.load(json_file)['samples']
+
+    for sample in dataset:
+        wav_file = sample['wav_path']
+        txt_file = sample['transcript_path']
+
+        label = parse_transcript(txt_file)
+
+        if len(label) != num_classes:
+            print('     Problem with the labels in the file:  ', txt_file)
+            print('       Label is: ', label)
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--display_missing_files', '-d')
@@ -47,3 +75,10 @@ if __name__ == '__main__':
     display_non_existing_files('/gpfsscratch/rech/rnt/uuj49ar/validation_manifest_183.json', args.display_missing_files)
     print('\n  3) Test Set: ')
     display_non_existing_files('/gpfsscratch/rech/rnt/uuj49ar/test_manifest_183.json', args.display_missing_files)
+
+    print('\n  4) SMALL Training Set: ')
+    check_all_labels_contents('/gpfsscratch/rech/rnt/uuj49ar/small_train_no_noise_manifest_183.json', num_classes=183)
+    print('\n  5) SMALL Validation Set: ')
+    check_all_labels_contents('/gpfsscratch/rech/rnt/uuj49ar/small_validation_no_noise_manifest_183.json', num_classes=183)
+    print('\n  6) SMALL Test Set: ')
+    check_all_labels_contents('/gpfsscratch/rech/rnt/uuj49ar/small_test_no_noise_manifest_183.json', num_classes=183)
