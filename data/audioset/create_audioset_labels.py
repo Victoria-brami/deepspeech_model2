@@ -91,17 +91,25 @@ def create_manifest_2(path_to_audioset_folder, data_type='eval', num_classes=183
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
 
 
-def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
+def create_manifest(path_to_audioset_folder, size=None, data_type='eval', num_classes=183):
     """
 
     :param data_path: (str) path to the folder where all the wav files are
-    :param output_name: (str) name of the manifest, that will be a json file dataset_manfest_datatype_num_classes.json
-    :param manifest_path: (str) directory in whish the manifest will be stored
+    :param output_name: (str) name of the manifest, that will be a json file dataset_manifest_datatype_num_classes.json
+    :param manifest_path: (str) directory in which the manifest will be stored
     :param file_extension: (str) wav file per default
-    :return:
+    :return: A json file containing for each sample the path to the txt file and the path to the wav file
     """
+    manifest = {
+        'root_path': data_path,
+        'samples': []
+    }
 
-    output_name = 'audioset_{}_manifest_{}.json'.format(data_type, num_classes)
+    if size == 'small':
+        output_name = 'audioset_small_{}_manifest_{}.json'.format(data_type, num_classes)
+    else:
+        output_name = 'audioset_{}_manifest_{}.json'.format(data_type, num_classes)
+
     data_path = os.path.abspath(Path(path_to_audioset_folder) / PosixPath(data_type))
     manifest_path = path_to_audioset_folder
     file_paths = list(Path(data_path / PosixPath('txt_{}'.format(num_classes))).rglob(f"*.txt"))
@@ -109,10 +117,7 @@ def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
     output_path = Path(manifest_path) / output_name
     output_path.parent.mkdir(exist_ok=True, parents=True)
 
-    manifest = {
-        'root_path': data_path,
-        'samples': []
-    }
+
 
     for txt_path in tqdm(file_paths, total=len(file_paths)):
         txt_path = txt_path.relative_to(data_path)
@@ -123,16 +128,24 @@ def create_manifest(path_to_audioset_folder, data_type='eval', num_classes=183):
         wav_name = PosixPath(txt_file.replace('.txt', '.wav'))
 
         transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_file
-        new_wav_path = PosixPath('/gpfsdwork/dataset/AudioSet') / PosixPath(data_type) / PosixPath(str(wav_name)[0]) / wav_name
+        new_wav_path = PosixPath('/gpfsdswork/dataset/AudioSet') / PosixPath(data_type) / PosixPath(str(wav_name)[0]) / wav_name
         print('transcript path', transcript_path)
 
         # Write new data in the manifest
-        manifest['samples'].append({
-            'wav_path': new_wav_path.as_posix(),
-            'transcript_path': transcript_path.as_posix()
-        })
+        if size == 'small':
+            if Path(new_wav_path).is_file():
+                manifest['samples'].append({
+                    'wav_path': new_wav_path.as_posix(),
+                    'transcript_path': transcript_path.as_posix()
+                })
+        else:
+            manifest['samples'].append({
+                'wav_path': new_wav_path.as_posix(),
+                'transcript_path': transcript_path.as_posix()
+            })
 
     output_path.write_text(json.dumps(manifest, indent=4), encoding='utf8')
+
 
 
 # define parsing transcript function
@@ -142,7 +155,7 @@ def _parse_labels(path_to_audioset_folder, data_type, num_classes):  # eval, unb
     :param data_path: (str) path to the directory where the csv file is stored
     :param csv_file: (str) name of the csv file
     :param list_of_labels: Corresponding labels (human filtered or not)
-    :return: Creates for each waw a txt file containing the encoded label
+    :return: Creates for each wav a txt file containing the encoded label
     """
     labels_path = os.path.join(path_to_audioset_folder, 'csv', 'class_labels_indices_{}.csv'.format(num_classes))
     csv_labels = pd.read_csv(labels_path)
@@ -196,6 +209,8 @@ if __name__ == '__main__':
     _parse_labels(args.path_to_audioset_folder, args.path_to_csv_labels, data_type=args.data_type)
     output_name = 'audioset_{}_manifest_183.json'.format(args.data_type)
     manifest_path = args.path_to_audioset_folder
+    create_manifest(args.path_to_audioset_folder, output_name, manifest_path, size='small', file_extension='wav',
+                    data_type=args.data_type, num_classes=183)
     create_manifest(args.path_to_audioset_folder, output_name, manifest_path, file_extension='wav',
                     data_type=args.data_type, num_classes=183)
     create_json_file(list_of_labels=labels,

@@ -10,6 +10,11 @@ import os
 
 
 def preprocess_csv_files_3(path_to_csv):
+    """
+
+    :param path_to_csv: path to the corrupted csv
+    :return: A csv file instead of tsv (removes tabs between data)
+    """
     with open(path_to_csv, 'r', encoding='utf8') as transcript_file_2:
         transcript2 = transcript_file_2.read().replace(" ", "")
     f2 = open(path_to_csv, 'w')
@@ -17,6 +22,13 @@ def preprocess_csv_files_3(path_to_csv):
 
 
 def translate_labels(csv_data_file, labels_encoding, path_to_csv_file):
+    """
+
+    :param csv_data_file:
+    :param labels_encoding: (csv) list of the true name of the labels and the encoded ones
+    :param path_to_csv_file: (str) path to th newly created csv (stored in audioset folder)
+    :return: Translates the encoded labels and add a nex column (for better readability)
+    """
     new_translated_column = []
 
     print('\n Before Translation \n', csv_data_file.head())
@@ -39,6 +51,13 @@ def translate_labels(csv_data_file, labels_encoding, path_to_csv_file):
 
 
 def convert_false_csv_files_to_dataframes(path_to_folder, data_type, num_classes=527):
+    """
+
+    :param path_to_folder: (str) Path to audioset folder
+    :param data_type: (str) either balanced, unbalanced train or evaluation file
+    :param num_classes: (int) Number of classes considered (527 if unfiltered yet)
+    :return: Uncorrupted CSV file, with a right format
+    """
     new_data = dict(YTID=[], start_seconds=[], end_seconds=[], positive_labels=[])
 
     path_to_csv = os.path.join(path_to_folder, 'csv', '{}_segments_{}.csv').format(data_type, num_classes)
@@ -47,6 +66,7 @@ def convert_false_csv_files_to_dataframes(path_to_folder, data_type, num_classes
     all_lines = file1.readlines()
     for line in all_lines[3:]:
         list_of_items = line.split(' ')
+        # print('List of items', list_of_items)
         new_data['YTID'].append(str(list_of_items[0][:-1]))
         new_data['start_seconds'].append(float(list_of_items[1][:-1]))
         new_data['end_seconds'].append(float(list_of_items[2][:-1]))
@@ -59,6 +79,11 @@ def convert_false_csv_files_to_dataframes(path_to_folder, data_type, num_classes
 
 
 def correct_labels_format(path_to_audioset_folder):
+    """
+
+    :param path_to_audioset_folder: (str) path to where the labels csv file is stored
+    :return: Corrected labels csv file: replacing comma and tabs per _and_ and _.
+    """
     # Ensure labels file in the right format
     path_to_labels = os.path.join(path_to_audioset_folder, 'csv', 'class_labels_indices_527.csv')
     labels = pd.read_csv(path_to_labels)
@@ -71,6 +96,13 @@ def correct_labels_format(path_to_audioset_folder):
 
 
 def align_translated_labels_with_csv_files(path_to_audioset_folder, data_type, num_classes=527):
+    """
+
+    :param path_to_audioset_folder: (str) path to where the labels csv file is stored
+    :param data_type: (str) either balanced, unbalanced train or evaluation file
+    :param num_classes: (int) Number of classes considered (527 if unfiltered yet)
+    :return: Translates the encoded labels in segments csv files and add a new column for better readability
+    """
     path_to_csv_files = os.path.join(path_to_audioset_folder, 'csv',
                                      '{}_segments_{}.csv'.format(data_type, num_classes))
     path_to_labels = os.path.join(path_to_audioset_folder, 'csv', 'class_labels_indices_{}.csv'.format(num_classes))
@@ -92,7 +124,14 @@ def align_translated_labels_with_csv_files(path_to_audioset_folder, data_type, n
     data.to_csv(path_to_csv_files, index=False)
 
 
-def filter_dataset_on_non_human_labels(path_to_audioset_folder, data_type, num_classes):
+def filter_dataset_on_non_human_labels(path_to_audioset_folder, data_type, num_classes=183):
+    """
+
+    :param path_to_audioset_folder: (str) path to where the labels csv file is stored
+    :param data_type: (str) either balanced, unbalanced train or evaluation file
+    :param num_classes: (int) Number of classes considered (527 if unfiltered yet). here we would like to extract 183 classes
+    :return: A new csv file containing only samples with one of the desired labels (removes samples with non-desired labels)
+    """
     path_to_csv_file = os.path.join(path_to_audioset_folder, 'csv', '{}_segments_527.csv').format(data_type)
     data = pd.read_csv(path_to_csv_file)
 
@@ -133,6 +172,8 @@ def build_argparse():
                         default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset/csv/filtered_class_labels_indices.csv')
     parser.add_argument('--path_to_csv_file',
                         default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset/csv/unbalanced_train_segments.csv')
+    parser.add_argument('--num_classes',
+                        default=183)
     args = parser.parse_args()
     return args
 

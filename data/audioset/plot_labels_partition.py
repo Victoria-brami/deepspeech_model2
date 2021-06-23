@@ -63,6 +63,8 @@ def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='tr
     with open(data_filename, 'r') as json_file:
         json_samples = json.load(json_file)['samples']
 
+    print('\n   NUMBER OF SAMPLES IN {} SET:    {}'.format(data_type, len(json_samples)))
+
     for sample in json_samples:
         txt_labels = parse_transcript(sample['transcript_path'])
         all_labels += np.array(txt_labels)
@@ -77,10 +79,11 @@ def plot_all_labels_proportion_partition(data_path, labels=labels, data_type='tr
 
     csv_data = dict()
     for i in range(num_classes):
-        csv_data[labels[i]] = int(all_labels[i])
-    csv_data = pd.DataFrame(csv_data)
+        csv_data[labels[i]] = int(float(all_labels[i]))
+    results = {'labels':[val for val in csv_data.keys()], 'number_of_samples':[i for i in csv_data.values()]}
+    results = pd.DataFrame(results)
     os.makedirs(os.path.join(data_path, 'graphs'), exist_ok=True)
-    csv_data.to_csv(data_path, 'graphs', '{}_SET_number_of_samples_per_label_183.csv'.format(data_type))
+    results.to_csv(os.path.join(data_path, 'graphs', '{}_SET_number_of_samples_per_label_183.csv'.format(data_type)))
 
     # Create partition figure
     if create_figure:
@@ -179,15 +182,15 @@ if __name__ == '__main__':
     plot_all_labels_proportion_partition(args.path_to_audioset_folder,
                                          data_type='train',
                                          mode='count',
-                                         create_figure=True)
+                                         create_figure=False)
     print('\n  Plotted for TRAIN set')
     plot_all_labels_proportion_partition(args.path_to_audioset_folder,
                                          data_type='validation',
                                          mode='count',
-                                         create_figure=True)
+                                         create_figure=False)
     print('\n  Plotted for VALIDATION set')
     plot_all_labels_proportion_partition(args.path_to_audioset_folder,
                                          data_type='test',
                                          mode='count',
-                                         create_figure=True)
+                                         create_figure=False)
     print('\n  Plotted for TEST set')
