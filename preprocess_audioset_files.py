@@ -3,7 +3,7 @@ import requests
 from data.audioset.correct_csv_files_format import *
 from pathlib import Path, PosixPath
 from data.audioset.download_audioset_sound_files import download_audioset_sound_files
-from data.audioset.create_audioset_labels import _parse_labels, create_manifest
+from data.audioset.create_audioset_labels import _parse_labels, create_manifest, check_manifest_length
 
 PYTHONPATH = os.getcwd()
 
@@ -19,6 +19,7 @@ def build_arguments():
 
     args = parser.parse_args()
     return args
+
 
 
 def download_labels(path_to_audioset_folder):
@@ -149,6 +150,11 @@ def preprocess_audioset(args):
         # 6) create manifests
         create_manifest(args.path_to_audioset_folder, data_type=data_type, num_classes=args.num_classes)
         print(' {})  {}: Json manifests created ! '.format(index + 6, data_type))
+
+        # 7) Check Manifest length
+        check_manifest_length(args.path_to_audioset_folder, size=None, data_type=data_type, num_classes=args.num_classes)
+        check_manifest_length(args.path_to_audioset_folder, size='small', data_type=data_type, num_classes=args.num_classes)
+        print()
 
         index += 7
 

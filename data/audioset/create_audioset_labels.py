@@ -189,11 +189,31 @@ def _parse_labels(path_to_audioset_folder, data_type, num_classes):  # eval, unb
 def merge_manifests():
     return None
 
+def check_manifest_length(path_to_audioset_folder, size=None, data_type='eval', num_classes=183):
+    """
+
+    :param path_to_audioset_folder:
+    :param size:
+    :param data_type:
+    :param num_classes:
+    :return: The number of elements in the json manifest
+    """
+    if size =='small':
+        filename = 'audioset_small_{}_manifest_{}.json'.format(data_type, num_classes)
+    else:
+        filename = 'audioset_{}_manifest_{}.json'.format(data_type, num_classes)
+
+    full_name = os.path.join(path_to_audioset_folder, filename)
+    with open(full_name, 'r') as json_file:
+        samples = json.load(json_file)['samples']
+
+    print('\n   The Number of Samples in {file} file is :  {nb}'.format(file=filename, nb=len(samples)))
 
 def build_argparse():
     parser = argparse.ArgumentParser(description='Processes and Downloads Freesound dataset')
     parser.add_argument('--data_type', type=str,
-                        default='balanced_train', choices=['eval', 'unbalanced_train', 'balanced_train'])
+                        default='balanced_train',
+                        choices=['eval', 'unbalanced_train', 'balanced_train'])
     parser.add_argument('--path_to_audioset_folder', type=str,
                         default='/home/coml/Documents/Victoria/noise_classifier/deepspeech_model2/data/audioset')
     parser.add_argument('--path_to_csv_labels', type=str,
