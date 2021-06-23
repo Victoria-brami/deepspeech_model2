@@ -160,7 +160,7 @@ def filter_dataset_on_non_human_labels(path_to_audioset_folder, data_type, num_c
             new_data['translated_positive_labels'].append(data['translated_positive_labels'][i])
 
         else:
-            print('  Filtered Sample: {}'.format(list_of_labels))
+            print('      Filtered Sample: {}'.format(list_of_labels))
 
     new_data = pd.DataFrame(new_data)
     print('Filtered path', filtered_path)
