@@ -159,6 +159,9 @@ def dataset_builder(args):
     merge_audioset_manifests(args.path_to_data_folder, 'train', args.num_classes)
     merge_audioset_manifests(args.path_to_data_folder, 'validation', args.num_classes)
     merge_audioset_manifests(args.path_to_data_folder, 'test', args.num_classes)
+    merge_audioset_manifests(args.path_to_data_folder, 'small_train', args.num_classes)
+    merge_audioset_manifests(args.path_to_data_folder, 'small_validation', args.num_classes)
+    merge_audioset_manifests(args.path_to_data_folder, 'small_test', args.num_classes)
 
 def build_arguments():
     parser = argparse.ArgumentParser()
