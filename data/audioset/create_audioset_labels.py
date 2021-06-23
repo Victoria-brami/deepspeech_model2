@@ -121,7 +121,6 @@ def create_manifest(path_to_audioset_folder, size=None, data_type='eval', num_cl
 
     for txt_path in tqdm(file_paths, total=len(file_paths)):
         txt_path = txt_path.relative_to(data_path)
-        sys.stdout.write(' \r TXT PATH:   {} '.format(txt_path))
 
         # Define path to write in annotations
         txt_file = str(txt_path).split('/')[-1]
@@ -129,7 +128,8 @@ def create_manifest(path_to_audioset_folder, size=None, data_type='eval', num_cl
 
         transcript_path = data_path / PosixPath('txt_{}'.format(num_classes)) / txt_file
         new_wav_path = PosixPath('/gpfsdswork/dataset/AudioSet') / PosixPath(data_type) / PosixPath(str(wav_name)[0]) / wav_name
-        print('transcript path', transcript_path)
+        # sys.stdout.write(' \r TXT PATH:   {} '.format(transcript_path))
+        sys.stdout.write(' \r WAV PATH:   {} '.format(new_wav_path))
 
         # Write new data in the manifest
         if size == 'small':
