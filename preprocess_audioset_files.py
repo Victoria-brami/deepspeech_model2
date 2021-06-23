@@ -118,7 +118,8 @@ def preprocess_audioset(args):
 
     if args.download_from_jeanzay:
         print()
-        # download_labels_from_jeanzay('/gpfsdswork/dataset/AudioSet', args.path_to_audioset_folder)
+        download_labels_from_jeanzay('/gpfsdswork/dataset/AudioSet', args.path_to_audioset_folder)
+        correct_labels_format(args.path_to_audioset_folder)
 
     for data_type in args.data_types:  # 'balanced_train', 'unbalanced_train', :
 
