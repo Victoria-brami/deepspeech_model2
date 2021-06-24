@@ -3,7 +3,7 @@ import argparse
 import os
 import random
 import torchaudio
-
+import sys
 
 def display_non_existing_files(path_to_json_file, display_filename):
 
@@ -58,27 +58,50 @@ def load_audio(path):
 
 
 
-def check_all_labels_contents(path_to_json_file, num_classes=183):
+def check_all_labels_contents(path_to_json_file, num_classes=183, start_index=17420):
 
     with open(path_to_json_file, 'r') as json_file:
         dataset = json.load(json_file)['samples']
 
     sample_index = 0
 
-    for sample in dataset:
+    for sample in dataset[start_index:]:
         wav_file = sample['wav_path']
         txt_file = sample['transcript_path']
 
         label = parse_transcript(txt_file)
         wav = load_audio(wav_file)
 
+        sys.stdout.write('\r  Processing on wav file {} / {}'.format(start_index + sample_index, len(dataset[start_index:])))
+
         if len(label) != num_classes:
             print('     Problem with the labels in the file:  ', txt_file)
         if wav.shape[0] < 100000:
-            print('       Audio size is: ', wav.shape, wav_file, sample_index)
+            print('       Audio size is: ', wav.shape, wav_file, start_index + sample_index)
         sample_index += 1
 
 
+def remove_corrupted_files(path_to_json_file, corrupted_list, num_classes=183):
+
+    with open(path_to_json_file, 'r') as json_file:
+        dataset = json.load(json_file)
+
+    sample_index = 0
+
+    new_dataset = []
+
+    for sample in dataset['samples']:
+        sys.stdout.write('\r  Processing on wav file {} / {}'.format(sample_index, len(dataset)))
+
+        wav_name = sample['wav_path']
+
+        if wav_name not in corrupted_list:
+            new_dataset.append(wav_name)
+
+    dataset['samples'] = new_dataset
+
+    with open(path_to_json_file, 'w') as new_json_file:
+        json.dump(dataset, new_json_file, indent=4)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -98,3 +121,6 @@ if __name__ == '__main__':
     check_all_labels_contents('/gpfsscratch/rech/rnt/uuj49ar/small_validation_no_noise_manifest_183.json', num_classes=183)
     print('\n  6) SMALL Test Set: ')
     check_all_labels_contents('/gpfsscratch/rech/rnt/uuj49ar/small_test_no_noise_manifest_183.json', num_classes=183)
+
+
+    CORRUPTED_LIST = ['/gpfsdswork/dataset/AudioSet/unbalanced_train/-/-zVGs8QmK1I_210.000_220.000.wav']
