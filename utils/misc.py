@@ -24,5 +24,13 @@ def identify_strange_output_values(output):
     print(' MINs {} \n and \n MAXs {}'.format(mins, maxs))
 
 
+def plot_output(output):
+    print('\n Network output', output)
+
+
+def show_model_weights(model):
+    # Plot the model weights to see if they are evolving
+    return None
+
 output = torch.randn((4, 8))
 identify_strange_output_values(output)
