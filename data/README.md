@@ -27,7 +27,8 @@ the user must run the commands:
     However, the user must build at first the list of the labels he will use for dataset preprocessing. It ahas to have the 
     same shape as the one described in Audioset site.
 
-3. In a third step, the user creates the labels fro freesound files as well by running the command:
+
+3. In a third step, the user creates the labels for freesound files as well by running the command:
 
     ```
     python data/preprocess_freesound_files.py 
@@ -35,11 +36,11 @@ the user must run the commands:
     ```
 4. Finally, Audioset and freesound manifest can be merged thanks to `build_train_set.py` to create a larger
    training and validation set.
+   
+
 5. As some files in Audioset are corrupted, they need to be removed from the manifests. The user is invited to run the command:
     ```
     python data/filter_non_existing_sound_files.py 
         --
     ```
    in order to find out those corrupted files and remove them.
-
-5.
