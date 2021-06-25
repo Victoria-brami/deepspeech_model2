@@ -71,6 +71,7 @@ def save_outputs(outputs, layer, i, destination_path, dataset_name):
     os.makedirs(full_destination_path, exist_ok=True)
     save_filename = '{}.npy'.format(i)
     np.save(os.path.join(full_destination_path, save_filename), outputs)
+    print("Outputs were saved at: ", full_destination_path)
 
 
 def representations_extractor(layer: str,
@@ -142,7 +143,7 @@ def representations_extractor(layer: str,
     # Compute intermediate representations
     for i, batch in enumerate(loader, 0):
 
-        with autocast(enabled=True):
+        with torch.no_grad():
             inputs, targets, input_percentages, target_sizes = batch
             input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
             # device = torch.cuda.device(device)
@@ -157,8 +158,8 @@ def representations_extractor(layer: str,
 
             # Save the representations
             dataset_name = 'freesound_train_curated'
-            destination_path = 'freesound_outputs'
-            save_outputs(out, layer, i, destination_path, dataset_name)
+            destination_path = '/scratch2/vbrami/deepspeech_extractions/freesound_outputs'
+            save_outputs(new_outputs, layer, i, destination_path, dataset_name)
 
     return None
 
